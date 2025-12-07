@@ -22,10 +22,17 @@ private:
     size_t _len = 0;
 
     void handleLine(Storage& storage, const char* line);
+    
+    // commands
     void cmdHello(Storage& storage);
     void cmdGetState(Storage& storage);
     void cmdClear(Storage& storage);
     void cmdDump(Storage& storage, int offset, int count);
+    void cmdProvisionKey(Storage& storage, int version, const char* keyHex);
+    void cmdSignState(Storage& storage, const char* nonceHex);
 
+    // utils
     void printHex(const uint8_t* data, size_t len);
+    bool hexToBytes(const char* hex, uint8_t* out, size_t outLen);
+    void bytesToHex(const uint8_t* in, size_t len, char* out);
 };

@@ -102,6 +102,30 @@ void Storage::addLink(const uint8_t peerId[DEVICE_UID_LEN]) {
     markDirty();
 }
 
+// per-device key
+
+bool Storage::hasSecretKey() const {
+    if (_image.payload.keyVersion == 0) return false;
+    for (size_t i = 0; i < 32; ++i) {
+        if (_image.payload.secretKey[i] != 0) return true;
+    }
+    return false;
+}
+
+const uint8_t* Storage::getSecretKey() const {
+    return _image.payload.secretKey;
+}
+
+uint8_t Storage::getKeyVersion() const {
+    return _image.payload.keyVersion;
+}
+
+void Storage::setSecretKey(uint8_t version, const uint8_t key[32]) {
+    _image.payload.keyVersion = version;
+    memcpy(_image.payload.secretKey, key, 32);
+    markDirty();
+    saveNow();
+}
 
 // =====================================================
 // NVM I/O

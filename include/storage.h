@@ -24,17 +24,22 @@ struct LinkRecordV1 {
 
 // Must be 4-byte aligned to use hardware CRC
 struct __attribute__((aligned(4))) PersistPayloadV1 {
-    uint8_t selfId[DEVICE_UID_LEN];
-    uint32_t totalTapCount;
-    uint16_t linkCount;
-    uint16_t reserved16;
+    uint8_t selfId[DEVICE_UID_LEN];  // 12
+    uint32_t totalTapCount;          // 4
+    uint16_t linkCount;              // 2
+    uint8_t  keyVersion;             // 1  (0 = key not provisioned)
+    uint8_t  reserved8;              // 1  (alignment padding)
 
     static const size_t MAX_LINKS = 64;
     LinkRecordV1 links[MAX_LINKS];
 
-    // future reserved block
+    // Per-device secret key (written after server generates it)
+    uint8_t secretKey[32];
+
+    // Reserved space
     uint32_t reserved32[16];
 };
+
 
 static_assert(sizeof(PersistPayloadV1) % 4 == 0, "PersistPayloadV1 must be 4-byte aligned");
 
@@ -67,6 +72,12 @@ public:
     void markDirty();   // mark structure modified
 
     PersistPayloadV1& state() { return _image.payload; }
+
+    // per-device key
+    bool hasSecretKey() const;
+    const uint8_t* getSecretKey() const;              // 32 bytes
+    uint8_t getKeyVersion() const;
+    void setSecretKey(uint8_t version, const uint8_t key[32]);
 
     void clearAll();    // reset counters & links but keep selfId
     void addLink(const uint8_t peerId[DEVICE_UID_LEN]);
