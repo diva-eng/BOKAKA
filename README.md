@@ -1,6 +1,6 @@
 # Bokaka
 
-**Bokaka** is an interactive smart PCB card designed to connect Miku fans through simple, meaningful physical interactions.  
+**Bokaka** is an interactive smart PCB card designed to connect VOCALOID fans through simple, meaningful physical interactions.  
 Powered by a low‑energy microcontroller and magnetic tap‑to‑link interface, Bokaka creates a shared experience that blends hardware, community, and creativity.
 
 ---
