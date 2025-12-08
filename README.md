@@ -1,104 +1,52 @@
-# Bokaka
+# Bokaka (ボカカ)
 
-**Bokaka** is an interactive smart PCB card designed to connect VOCALOID fans through simple, meaningful physical interactions.  
-Powered by a low‑energy microcontroller and magnetic tap‑to‑link interface, Bokaka creates a shared experience that blends hardware, community, and creativity.
+## Overview
+Bokaka is an open-hardware, open-firmware credit-card–sized PCB distributed as a collectible at VOCALOID events (including Hatsune Miku concerts). Each unit contains a microcontroller, LEDs, a tap-to-connect interface, and local storage to record brief peer-to-peer interactions. The device visualizes interaction progress through onboard LEDs and supports synchronization with a companion website over USB.
 
----
+## Key Capabilities
+- Record unique, short-range interactions with other Bokaka units via a simple 1‑wire handshake.
+- Persist interaction records in on‑board flash and present a visual progress/connection meter using LEDs.
+- Connect to a host computer over USB to claim the device, attach personal information, and upload interaction data to a companion website.
 
-## 🌱 What is Bokaka?
+## Hardware Summary
+- Form factor: Credit-card–sized PCB
+- Microcontroller: STM32L052K8T6 (low power, USB, unique device ID)
+- Power:
+    - Primary: CR2032 coin cell for standalone operation
+    - Optional: USB‑C for data and power
+- Communication:
+    - Tap connector (pogo pins / magnetic pads) implementing a 1‑wire Bokaka protocol
+    - USB for host connectivity
+- Peripherals:
+    - Multiple low‑power colored LEDs for progress and animation
+    - Single status button
+    - Buzzer for simple sound feedback
 
-Bokaka is a pocket‑sized device that allows fans to exchange identity tokens simply by tapping their cards together.  
-Each successful interaction lights up part of an LED pattern on the card—forming leeks, Miku‑themed shapes, or rare animations as you meet more fans.
+## Functional Description
+When two Bokaka units are tapped together, they perform a one‑wire handshake and exchange unique identifiers. Each successful exchange is recorded to on‑board flash memory. The device uses LED animations to indicate the connection status and to represent a cumulative “connection meter.” When connected to a host computer via USB, the user may:
 
-- Meet someone → Tap cards  
-- Cards exchange secure IDs  
-- Your LED pattern grows  
-- Reach milestones → unlock animations  
-- Sync to the website → view your connection graph
+1. Claim ownership of the card.
+2. Attach optional personal metadata to the device.
+3. Synchronize recorded interactions with a companion website to visualize social graphs.
 
-Bokaka turns fan encounters into a visual memory you can carry.
+## Development and Firmware
+- Firmware: PlatformIO with the Arduino framework targeting the STM32L0 series.
+- PCB design: KiCad (open hardware files included).
+- Goals: Maintain low power consumption for coin‑cell operation, robust flash management for interaction logs, and a simple, extensible protocol for tap interactions.
 
----
+## Project Structure (typical)
+- hardware/ — KiCad project files and manufacturing outputs
+- firmware/ — PlatformIO project, source code, and build scripts
+- docs/ — Design notes, protocol specification, and user documentation
+- tools/ — Utility scripts for flashing, testing, and data conversion
 
-## ✨ Features
+## Usage
+- Standalone: Power via CR2032 and perform tap interactions with other units.
+- Host mode: Connect via USB‑C to a host to perform claiming, metadata attachment, and data synchronization.
+- Interaction protocol: 1‑wire handshake using the tap connector; exchanged identifiers are stored locally.
 
-### **🔵 Tap‑to‑Connect Interface**
-- Magnetic pogo‑pin contact pads  
-- Stable one‑wire handshake protocol  
-- Offline identity exchange  
+## Contribution & Licensing
+Contributions are welcome. See [CONTRIBUTING.md](CONTRIBUTING.md) for process and coding standards. Utility scripts (including the provisioning helper) live in `utils/` — see [utils/README.md](utils/README.md) for usage. The project is released under an open hardware / open source license (see LICENSE).
 
-### **🟢 LED Progress & Animations**
-- Energy‑efficient LED matrix  
-- Connection milestones unlock new patterns  
-- Optional hidden Easter eggs  
-
-### **🟣 WebUSB Support**
-- No drivers required  
-- Configure and sync directly in your browser  
-- Built‑in unique device identity  
-
-### **🛡 Per‑Device Security**
-- Each Bokaka includes:
-  - Unique device ID
-  - Locally stored secret key (HMAC)
-- Server verifies authenticity without exposing secrets  
-
-### **🌐 Global Fan Connection Graph**
-When synced to the companion site, your interactions contribute to a worldwide visualization of Miku fans and their meeting paths.
-
----
-
-## 🧩 Technical Overview
-
-| Component | Detail |
-|----------|--------|
-| MCU | STM32 family with unique ID + low‑power modes |
-| LEDs | Low‑power addressable matrix |
-| Interface | Magnetic pogo‑pin contact pads |
-| Security | Per‑device HMAC with rotating key versions |
-| Connectivity | WebUSB + browser‑native syncing |
-| Storage | Internal flash with schema versioning |
-
----
-
-## 🔧 Development Notes
-
-This repository may contain:
-- Firmware for the Bokaka card  
-- Python provisioning tools  
-- WebUSB interface and JS client  
-- Documentation for the communication protocol  
-
----
-
-## ❤️ Community
-
-Bokaka is made for fans who want to share a moment of connection—whether at concerts, events, or anywhere creativity brings people together.
-
-If you’d like to contribute, discuss features, or share ideas, feel free to open issues or PRs!
-
----
-
-## 📄 License
-
-MIT License
-
-Copyright (c) 2025 Diva Engineering
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+## Contacts & Resources
+Refer to the repository for detailed build instructions, protocol documentation, and firmware API references.
