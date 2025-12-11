@@ -2,9 +2,243 @@
 	(version 20250114)
 	(generator "eeschema")
 	(generator_version "9.0")
-	(uuid d8e340c0-2cae-427d-93e9-6fca5a11389e)
+	(uuid "d8e340c0-2cae-427d-93e9-6fca5a11389e")
 	(paper "A4")
+	(title_block
+		(title "BOKAKA")
+		(date "2025-12-09")
+		(rev "v1.0")
+		(company "DIVA Engineering")
+		(comment 3 "collectible at VOCALOID events.")
+		(comment 4 "Bokaka is an open-hardware, open-firmware credit-card–sized PCB distributed as a ")
+	)
 	(lib_symbols)
+	(wire
+		(pts
+			(xy 92.71 80.01) (xy 88.9 80.01)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1029de5d-1b22-4818-93ea-d5d6d8af1711")
+	)
+	(wire
+		(pts
+			(xy 88.9 80.01) (xy 88.9 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "108c828e-0498-4465-a909-04a00908a745")
+	)
+	(wire
+		(pts
+			(xy 90.17 77.47) (xy 92.71 77.47)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "3485d187-cb68-46c8-8251-995dc3f8c030")
+	)
+	(wire
+		(pts
+			(xy 88.9 43.18) (xy 91.44 43.18)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "afcb2ad8-473e-41ef-9b65-d0b17e3a453c")
+	)
+	(wire
+		(pts
+			(xy 91.44 45.72) (xy 90.17 45.72)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "db6bf388-0256-4215-8a68-c829f240236e")
+	)
+	(wire
+		(pts
+			(xy 90.17 45.72) (xy 90.17 77.47)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "fc41940b-f940-4bcd-9cc2-a7bddfdb440e")
+	)
+	(sheet
+		(at 92.71 74.93)
+		(size 39.37 22.86)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "10c61b73-6948-431c-bb4d-6084dd86038c")
+		(property "Sheetname" "Microcontroller"
+			(at 92.71 74.2184 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "microcontroller.kicad_sch"
+			(at 92.71 98.3746 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "USB_D+" input
+			(at 92.71 80.01 180)
+			(uuid "4d39bfad-3d9a-45e6-9871-375db1eb866d")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "USB_D-" input
+			(at 92.71 77.47 180)
+			(uuid "dd976c44-fc37-4e52-aec2-b017ee549ca7")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(instances
+			(project "bokaka"
+				(path "/d8e340c0-2cae-427d-93e9-6fca5a11389e"
+					(page "4")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 35.56 40.64)
+		(size 36.83 16.51)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "5a57696f-a948-45ee-a59e-a44500e0832e")
+		(property "Sheetname" "Power Supply"
+			(at 35.56 39.9284 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "power.kicad_sch"
+			(at 35.56 57.7346 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(instances
+			(project "bokaka"
+				(path "/d8e340c0-2cae-427d-93e9-6fca5a11389e"
+					(page "2")
+				)
+			)
+		)
+	)
+	(sheet
+		(at 91.44 39.37)
+		(size 39.37 17.78)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(stroke
+			(width 0.1524)
+			(type solid)
+		)
+		(fill
+			(color 0 0 0 0.0000)
+		)
+		(uuid "7060845f-a033-46e6-85c6-19e21bb53a3a")
+		(property "Sheetname" "Connectors"
+			(at 91.44 38.6584 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left bottom)
+			)
+		)
+		(property "Sheetfile" "connectors.kicad_sch"
+			(at 91.44 57.7346 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left top)
+			)
+		)
+		(pin "USB_D+" input
+			(at 91.44 43.18 180)
+			(uuid "933cc140-54e5-427e-a639-87647cdd366d")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(pin "USB_D-" input
+			(at 91.44 45.72 180)
+			(uuid "c0ac86fd-b6c9-46c0-951f-8f6df3161097")
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(instances
+			(project "bokaka"
+				(path "/d8e340c0-2cae-427d-93e9-6fca5a11389e"
+					(page "3")
+				)
+			)
+		)
+	)
 	(sheet_instances
 		(path "/"
 			(page "1")
