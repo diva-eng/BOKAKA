@@ -424,6 +424,10 @@
     [
       "10c61b73-6948-431c-bb4d-6084dd86038c",
       "Microcontroller"
+    ],
+    [
+      "df3f2b6f-c2ea-42f8-be18-5fedc2357726",
+      "Peripherals"
     ]
   ],
   "text_variables": {}
