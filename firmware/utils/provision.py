@@ -247,10 +247,6 @@ class UIManager:
             # fallback: print normally
             builtins.print(msg)
 
-    def set_status(self, s: str):
-        self.status = s
-        if _USE_RICH and self._active and self.live is not None:
-            self.live.update(self._render())
 
 
 # global UI instance (created in main)
@@ -277,10 +273,56 @@ def set_status(s: str):
             pass
 
 
-def confirm_provision(port: str, device_id: Optional[str] = None) -> bool:
-    """Ask the user to confirm provisioning. Temporarily stops the live UI to accept input."""
+def confirm_reprovision(port: str, device_id: Optional[str] = None) -> bool:
+    """Ask the user to confirm re-provisioning an already provisioned device.
+    
+    This confirmation is MANDATORY and cannot be skipped with --no-confirm flag.
+    """
     global ui
-    # auto-accept if requested
+    prompt = f"⚠️  Device {device_id or ''} on port {port} is ALREADY PROVISIONED. Re-provision? [y/N]: "
+    if ui is None or not getattr(ui, "_active", False) or not _USE_RICH or getattr(ui, 'live', None) is None:
+        # no Rich live UI active; fallback to standard input
+        try:
+            resp = input(prompt)
+            return resp.strip().lower() in ("y", "yes")
+        except Exception:
+            return False
+
+    # If Rich Live is active, prefer pausing the Live renderer so the prompt
+    # doesn't cause the UI to jump. Use Live.pause() when available, else
+    # fall back to the previous enter/exit approach.
+    try:
+        try:
+            with ui.live.pause():
+                # use Rich Console.input to get consistent behavior
+                resp = console.input(prompt)
+        except Exception:
+            # fallback: stop live(), prompt with builtin input, then restart
+            try:
+                ui.__exit__(None, None, None)
+            except Exception:
+                pass
+            try:
+                resp = input(prompt)
+            except Exception:
+                resp = ''
+            try:
+                ui.__enter__()
+            except Exception:
+                pass
+        ok = resp.strip().lower() in ("y", "yes")
+    except Exception:
+        ok = False
+    return ok
+
+
+def confirm_provision(port: str, device_id: Optional[str] = None) -> bool:
+    """Ask the user to confirm provisioning. Temporarily stops the live UI to accept input.
+    
+    Can be skipped with --no-confirm flag (sets AUTO_ACCEPT).
+    """
+    global ui
+    # auto-accept if requested (for new provisioning only, not re-provisioning)
     if globals().get('AUTO_ACCEPT'):
         return True
     # If no UI, just ask via input()
@@ -352,14 +394,16 @@ def wait_for_port(existing: List[str], timeout: Optional[float]) -> Optional[str
     """Wait for a new serial port not present in `existing`.
 
     Uses a Rich status spinner when available, otherwise falls back to simple prints.
+    Note: Ports that disappear and reappear will be detected as new (handles unplug/replug case).
     """
+    existing_set = set(existing)  # Convert to set for faster lookups
     start = time.time()
     set_status("Waiting for new serial port...")
     if _USE_RICH:
         with console.status("", spinner="dots"):
             while True:
                 cur = list_serial_ports()
-                new = [p for p in cur if p not in existing]
+                new = [p for p in cur if p not in existing_set]
                 if new:
                     set_status(f"Detected new port: {new[0]}")
                     cprint(f"Detected new port: {new[0]}")
@@ -373,7 +417,7 @@ def wait_for_port(existing: List[str], timeout: Optional[float]) -> Optional[str
         print("Waiting for new serial port...")
         while True:
             cur = list_serial_ports()
-            new = [p for p in cur if p not in existing]
+            new = [p for p in cur if p not in existing_set]
             if new:
                 print(f"Detected new port: {new[0]}")
                 return new[0]
@@ -387,170 +431,38 @@ def wait_for_port(existing: List[str], timeout: Optional[float]) -> Optional[str
 
 
 def open_serial(port: str, baud: int = 115200, timeout: float = 1.0) -> serial.Serial:
-    ser = serial.Serial(port, baudrate=baud, timeout=timeout)
-    # flush any existing input
-    ser.reset_input_buffer()
-    ser.reset_output_buffer()
-    return ser
-
-
-class EmulatedSerial:
-    """Simple in-process emulated serial device for testing provision flow without hardware.
-
-    Implements a minimal subset of `serial.Serial` used by this script: `read`, `write`,
-    `reset_input_buffer`, `reset_output_buffer`, `close`.
+    """Open a serial port and ensure buffers are flushed.
+    
+    This is critical for STM32 USB Serial (CDC) where the first command
+    can be lost if buffers aren't properly cleared after connection.
     """
-    def __init__(self, device_id: Optional[bytes] = None, delay: float = 0.15):
-        # device id 12 bytes
-        import os as _os
-        if device_id is None:
-            self.selfid = _os.urandom(12)
-        else:
-            self.selfid = device_id
-        self.selfid_hex = hex_bytes(self.selfid)
-        self._out = bytearray()
-        self._inbuf = ""
-        self.secret = None
-        self.key_version = 0
-        self.totalTapCount = 0
-        self.linkCount = 0
-        self.peers: List[bytes] = []
-        # artificial delay between handling lines (seconds) for emulation UI visibility
-        self._delay = delay
-
-    def reset_input_buffer(self):
-        self._out = bytearray()
-
-    def reset_output_buffer(self):
-        self._inbuf = ""
-
-    def close(self):
+    ser = serial.Serial(port, baudrate=baud, timeout=timeout)
+    
+    # Give the serial connection a moment to stabilize (especially important for USB CDC)
+    time.sleep(0.1)
+    
+    # Flush both input and output buffers to clear any initialization noise
+    # This ensures the first command sent will be received properly
+    try:
+        ser.reset_input_buffer()
+    except Exception:
+        pass  # Some serial implementations may not support this
+    
+    try:
+        ser.reset_output_buffer()
+    except Exception:
+        pass  # Some serial implementations may not support this
+    
+    # Also use flush() to ensure any pending output is sent
+    try:
+        ser.flush()
+    except Exception:
         pass
-
-    def flush(self):
-        # no-op for emulated serial to match `serial.Serial` API
-        return
-
-    def write(self, data: bytes):
-        # called when script sends a command
-        try:
-            txt = data.decode()
-        except Exception:
-            txt = data.decode(errors='ignore')
-        self._inbuf += txt
-        # process complete lines
-        while '\n' in self._inbuf:
-            line, self._inbuf = self._inbuf.split('\n', 1)
-            line = line.strip()
-            if not line:
-                continue
-            self._handle_line(line)
-
-    def read(self, size: int) -> bytes:
-        # return up to size bytes from output buffer
-        if not self._out:
-            return b""
-        n = min(len(self._out), size)
-        chunk = bytes(self._out[:n])
-        self._out = self._out[n:]
-        return chunk
-
-    def _enqueue(self, s: str):
-        if not s.endswith('\n'):
-            s = s + '\n'
-        self._out += s.encode()
-
-    def _handle_line(self, line: str):
-        # simulate device processing time so UI updates are visible in emulate mode
-        try:
-            if getattr(self, '_delay', 0):
-                time.sleep(self._delay)
-        except Exception:
-            pass
-        parts = line.split()
-        cmd = parts[0].upper()
-        if cmd == 'HELLO':
-            resp = {
-                "event": "hello",
-                "device_id": self.selfid_hex,
-                "fw": "0.0-test",
-                "build": "test",
-                "hash": "TEST"
-            }
-            self._enqueue(json.dumps(resp))
-        elif cmd == 'GET_STATE':
-            resp = {"event": "state", "totalTapCount": self.totalTapCount, "linkCount": self.linkCount}
-            self._enqueue(json.dumps(resp))
-        elif cmd == 'DUMP':
-            # DUMP <offset> <count>
-            offset = 0
-            count = 10
-            if len(parts) >= 2:
-                try:
-                    offset = int(parts[1])
-                except Exception:
-                    offset = 0
-            if len(parts) >= 3:
-                try:
-                    count = int(parts[2])
-                except Exception:
-                    count = 10
-            items = []
-            end = min(len(self.peers), offset + count)
-            for i in range(offset, end):
-                items.append({"peer": hex_bytes(self.peers[i])})
-            resp = {"event": "links", "offset": offset, "count": len(items), "items": items}
-            self._enqueue(json.dumps(resp))
-        elif cmd == 'PROVISION_KEY':
-            # PROVISION_KEY <ver> <hex>
-            if len(parts) < 3:
-                self._enqueue(json.dumps({"event": "error", "msg": "PROVISION_KEY args"}))
-                return
-            try:
-                ver = int(parts[1])
-                keyhex = parts[2]
-                key = bytes.fromhex(keyhex)
-                if len(key) != 32:
-                    raise ValueError()
-                self.secret = key
-                self.key_version = ver
-                self._enqueue(json.dumps({"event": "ack", "cmd": "PROVISION_KEY", "keyVersion": ver}))
-            except Exception:
-                self._enqueue(json.dumps({"event": "error", "msg": "invalid key hex"}))
-        elif cmd == 'SIGN_STATE':
-            if len(parts) < 2:
-                self._enqueue(json.dumps({"event": "error", "msg": "SIGN_STATE args"}))
-                return
-            if self.secret is None:
-                self._enqueue(json.dumps({"event": "error", "msg": "no_key"}))
-                return
-            noncehex = parts[1]
-            try:
-                nonce = bytes.fromhex(noncehex)
-            except Exception:
-                self._enqueue(json.dumps({"event": "error", "msg": "invalid nonce hex"}))
-                return
-            # Build msg: selfId + nonce + totalTapCount(4 LE) + linkCount(2 LE) + peers
-            msg = bytearray()
-            msg += self.selfid
-            msg += nonce
-            msg += int(self.totalTapCount).to_bytes(4, 'little')
-            msg += int(self.linkCount).to_bytes(2, 'little')
-            for p in self.peers:
-                msg += p
-            hm = hmac.new(self.secret, msg, hashlib.sha256).digest()
-            resp = {
-                "event": "SIGNED_STATE",
-                "device_id": self.selfid_hex,
-                "nonce": noncehex,
-                "totalTapCount": self.totalTapCount,
-                "linkCount": self.linkCount,
-                "keyVersion": self.key_version,
-                "hmac": hex_bytes(hm)
-            }
-            self._enqueue(json.dumps(resp))
-        else:
-            self._enqueue(json.dumps({"event": "error", "msg": f"unknown command: {cmd}"}))
+    
+    # Additional small delay to ensure buffers are fully cleared
+    time.sleep(0.05)
+    
+    return ser
 
 
 def balanced_json_objects(s: str) -> List[str]:
@@ -637,6 +549,53 @@ def hex_to_bytes(h: str) -> bytes:
     return bytes.fromhex(h)
 
 
+def get_device_info(ser: serial.Serial) -> tuple[Optional[Dict[str, Any]], Optional[str]]:
+    """Send HELLO command and return (hello_response, device_id).
+    Will keep sending HELLO until a response is received or user interrupts.
+    """
+    try:
+        hello = None
+        while hello is None:
+            send_cmd(ser, "HELLO")
+            hello = read_json_line(ser, timeout=2.0)
+            if hello is None:
+                time.sleep(0.2)  # wait a bit before retrying
+        dev_id = (hello or {}).get("device_id") if isinstance(hello, dict) else None
+        return hello, dev_id
+    except Exception:
+        return None, None
+
+
+def check_already_provisioned(dev_id: Optional[str], store_path: Path) -> bool:
+    """Check if device is already provisioned in the store."""
+    if not dev_id or not store_path.exists():
+        return False
+    try:
+        data = json.loads(store_path.read_text())
+        return dev_id in data
+    except Exception:
+        return False
+
+
+def handle_provision_confirmation(port: str, dev_id: Optional[str], already_provisioned: bool, no_confirm: bool) -> bool:
+    """Handle user confirmation for provisioning. Returns True if should proceed."""
+    if already_provisioned:
+        # MANDATORY confirmation required for re-provisioning (cannot be skipped)
+        ok = confirm_reprovision(port, dev_id)
+        if not ok:
+            cprint(f"Skipping re-provisioning of {port}")
+            return False
+        cprint(f"[i] User confirmed re-provisioning. Proceeding...")
+        return True
+    elif not no_confirm:
+        # Normal confirmation for new provisioning (can be skipped with --no-confirm)
+        ok = confirm_provision(port, dev_id)
+        if not ok:
+            cprint(f"Skipping provisioning of {port}")
+            return False
+    return True
+
+
 def provision_device(ser: serial.Serial, key_version: int = 1, validate: bool = True, store_path: Path = KEYSTORE_PATH, master_key: Optional[bytes] = None, master_signing_key: Optional[Any] = None) -> Dict[str, Any]:
     # 1) HELLO
     set_status("Step: HELLO")
@@ -662,6 +621,15 @@ def provision_device(ser: serial.Serial, key_version: int = 1, validate: bool = 
     except Exception:
         pass
     set_status(f"Device: {device_id_hex}")
+
+    # Check if device is already provisioned
+    if store_path.exists():
+        try:
+            data = json.loads(store_path.read_text())
+            if device_id_hex in data:
+                raise RuntimeError(f"Device {device_id_hex} is already provisioned")
+        except Exception:
+            pass
 
     # 2) generate secret key (always random). If a master signing key is provided, sign the secret so
     # the mapping can be later validated with the corresponding public key.
@@ -696,6 +664,13 @@ def provision_device(ser: serial.Serial, key_version: int = 1, validate: bool = 
         raise RuntimeError(f"Provision ack missing or bad: {ack}")
     cprint(f"[✓] Provisioned: {device_id_hex}")
     set_status("Provisioned")
+    
+    # The device acknowledges immediately, but then performs a blocking EEPROM write
+    # (approximately 896 bytes × 7ms/byte ≈ 6-7 seconds). Wait for it to complete
+    # before sending the next command to avoid timing issues.
+    set_status("Waiting for EEPROM write to complete...")
+    time.sleep(10)  # Wait 10 seconds to ensure EEPROM write completes
+    cprint("[i] EEPROM write should be complete, proceeding with validation")
 
     # 4) Optional validation: call GET_STATE, DUMP, then SIGN_STATE with nonce
     validation = None
@@ -703,7 +678,7 @@ def provision_device(ser: serial.Serial, key_version: int = 1, validate: bool = 
         # request state
         set_status("Validating: GET_STATE")
         send_cmd(ser, "GET_STATE")
-        st = read_json_line(ser, timeout=2.0)
+        st = read_json_line(ser, timeout=5.0)  # Increased timeout for safety
         if not st or st.get("event") != "state":
             raise RuntimeError(f"GET_STATE failed: {st}")
         totalTapCount = int(st.get("totalTapCount", 0))
@@ -712,7 +687,7 @@ def provision_device(ser: serial.Serial, key_version: int = 1, validate: bool = 
         # request links
         set_status("Validating: DUMP")
         send_cmd(ser, f"DUMP 0 {linkCount}")
-        linksmsg = read_json_line(ser, timeout=2.0)
+        linksmsg = read_json_line(ser, timeout=5.0)  # Increased timeout for safety
         if not linksmsg or linksmsg.get("event") != "links":
             raise RuntimeError(f"DUMP failed: {linksmsg}")
         items = linksmsg.get("items", [])
@@ -789,15 +764,16 @@ def provision_device(ser: serial.Serial, key_version: int = 1, validate: bool = 
 
 
 def wait_for_removal(port_name: str, poll_interval: float = 0.5):
-    """Block until `port_name` no longer appears in the system's port list."""
-    try:
-        while True:
-            cur = list_serial_ports()
-            if port_name not in cur:
-                return
-            time.sleep(poll_interval)
-    except KeyboardInterrupt:
-        return
+    """Block until `port_name` no longer appears in the system's port list.
+    
+    Note: KeyboardInterrupt is not caught here - it will propagate to the caller
+    so they can handle it appropriately (e.g., keep the port in the seen list).
+    """
+    while True:
+        cur = list_serial_ports()
+        if port_name not in cur:
+            return
+        time.sleep(poll_interval)
 
 
 def main(argv: Optional[List[str]] = None) -> int:
@@ -810,8 +786,6 @@ def main(argv: Optional[List[str]] = None) -> int:
     p.add_argument("--out", help="Output JSON file path (default: utils/provision_keys.json)")
     p.add_argument("--master-key-hex", help="Master key in HEX (32 bytes seed) used to sign provisioned secrets (Ed25519). Can also be provided via BOKAKA_MASTER_KEY env var.")
     p.add_argument("--master-key-pem", help="Path to PEM file containing an Ed25519 private key to sign provisioned secrets.")
-    p.add_argument("--emulate", action="store_true", help="Run with an in-process emulated device for testing (single run)")
-    p.add_argument("--emulate-delay", type=float, default=0.3, help="Delay in seconds between emulated device responses (for UI visibility)")
     p.add_argument("--no-confirm", dest="no_confirm", action="store_true", help="Skip interactive confirmation prompts and accept provisioning automatically")
     p.add_argument("--once", action="store_true", help="Provision a single device then exit")
     args = p.parse_args(argv)
@@ -874,39 +848,6 @@ def main(argv: Optional[List[str]] = None) -> int:
             cprint("cryptography package is required to use master key signing. Install with: pip install cryptography")
             return 4
 
-    # If emulate flag provided, run a single emulated device and exit
-    if args.emulate:
-        cprint("Running in emulation mode (single-run)")
-        ser = EmulatedSerial(delay=args.emulate_delay)
-        try:
-            # do a quick HELLO to populate device info and ask for confirmation
-            try:
-                send_cmd(ser, "HELLO")
-                hello = read_json_line(ser, timeout=1.0)
-                dev_id = (hello or {}).get("device_id") if isinstance(hello, dict) else None
-            except Exception:
-                hello = None
-                dev_id = None
-
-            # If not in no-confirm mode, ask user whether to proceed
-            if not getattr(args, "no_confirm", False):
-                ok = confirm_provision("EMULATED", dev_id)
-                if not ok:
-                    cprint("Skipping emulated provisioning.")
-                    try:
-                        ser.close()
-                    except Exception:
-                        pass
-                    return 0
-
-            entry = provision_device(ser, key_version=args.key_version, validate=not args.no_validate, store_path=store_path, master_key=master_key_bytes, master_signing_key=master_signing_key)
-            cprint("Provisioning succeeded (emulated):")
-            cprint(json.dumps(entry, indent=2))
-            return 0
-        except Exception as e:
-            cprint(f"Provisioning error (emulated): {e}")
-            return 1
-
     try:
         if args.port:
             # If user passed a specific port, provision once (or repeatedly if not --once)
@@ -914,6 +855,14 @@ def main(argv: Optional[List[str]] = None) -> int:
                 cprint(f"Provisioning {args.port} once...")
                 ser = open_serial(args.port, args.baud, timeout=0.2)
                 try:
+                    hello, dev_id = get_device_info(ser)
+                    # check if device is already provisioned
+                    already_provisioned = check_already_provisioned(dev_id, store_path)
+                    if already_provisioned:
+                        cprint(f"[⚠️] Device {dev_id} is already provisioned.")
+                        return 0
+                    if not handle_provision_confirmation(args.port, dev_id, already_provisioned, args.no_confirm):
+                        return 0
                     entry = provision_device(ser, key_version=args.key_version, validate=not args.no_validate, store_path=store_path, master_key=master_key_bytes, master_signing_key=master_signing_key)
                     cprint("Provisioning succeeded:")
                     cprint(json.dumps(entry, indent=2))
@@ -929,26 +878,19 @@ def main(argv: Optional[List[str]] = None) -> int:
                     cprint(f"Detected {args.port}, opening...")
                     try:
                         ser = open_serial(args.port, args.baud, timeout=0.2)
-                        # Try a quick HELLO to show device info before confirming
-                        try:
-                            send_cmd(ser, "HELLO")
-                            hello = read_json_line(ser, timeout=1.0)
-                            dev_id = (hello or {}).get("device_id") if isinstance(hello, dict) else None
-                        except Exception:
-                            hello = None
-                            dev_id = None
-
-                        if not args.no_validate:
-                            # prompt user to confirm provisioning
-                            ok = confirm_provision(args.port, dev_id)
-                            if not ok:
-                                cprint(f"Skipping provisioning of {args.port}")
-                                try:
-                                    ser.close()
-                                except Exception:
-                                    pass
-                                time.sleep(0.2)
-                                continue
+                        hello, dev_id = get_device_info(ser)
+                        
+                        already_provisioned = check_already_provisioned(dev_id, store_path)
+                        if already_provisioned:
+                            cprint(f"[⚠️] Device {dev_id} is already provisioned.")
+                        
+                        if not handle_provision_confirmation(args.port, dev_id, already_provisioned, args.no_confirm):
+                            try:
+                                ser.close()
+                            except Exception:
+                                pass
+                            time.sleep(0.2)
+                            continue
 
                         entry = provision_device(ser, key_version=args.key_version, validate=not args.no_validate, store_path=store_path, master_key=master_key_bytes, master_signing_key=master_signing_key)
                         cprint("Provisioning succeeded:")
@@ -969,36 +911,50 @@ def main(argv: Optional[List[str]] = None) -> int:
         else:
             # No explicit port: automatically wait for any new port and provision it, then continue until cancelled
             cprint("Waiting for new serial ports. Provisioning devices automatically when they appear. Press Ctrl+C to stop.")
-            seen = set(list_serial_ports())
+            
+            # Initialize seen set - start empty so existing ports can be detected
+            # We'll add ports to seen only after we've attempted to provision them or user skips them
+            seen = set()
+            
             while True:
-                port = wait_for_port(list(seen), timeout=args.timeout)
-                if not port:
-                    cprint("No new serial port detected within timeout; continuing to wait.")
-                    seen = set(list_serial_ports())
+                # Get current list of ports
+                current_ports = set(list_serial_ports())
+                
+                # Update seen to remove ports that are no longer present (handles unplug/replug case)
+                # This ensures that if a port disappears and reappears, it will be detected as new
+                removed = seen - current_ports
+                if removed:
+                    cprint(f"[i] Port(s) removed: {', '.join(removed)}")
+                # Remove ports that disappeared from seen set
+                seen = seen & current_ports
+                
+                # Check for new ports (ports not currently in seen)
+                new_ports = current_ports - seen
+                if new_ports:
+                    # Found a new port (or a port that was unplugged and replugged)
+                    port = sorted(new_ports)[0]  # Take the first one alphabetically
+                else:
+                    # No new port, wait a bit before checking again
+                    time.sleep(0.5)
                     continue
                 cprint(f"Detected new port {port}, attempting to provision...")
+                # Add port to seen immediately so we don't try to provision it again in this cycle
+                seen.add(port)
+                
                 try:
                     ser = open_serial(port, args.baud, timeout=0.2)
-                    # quick HELLO to show device info before asking
-                    try:
-                        send_cmd(ser, "HELLO")
-                        hello = read_json_line(ser, timeout=1.0)
-                        dev_id = (hello or {}).get("device_id") if isinstance(hello, dict) else None
-                    except Exception:
-                        hello = None
-                        dev_id = None
-
-                    # ask for confirmation unless --no-validate used; allow skipping
-                    ok = True
-                    if not args.no_validate:
-                        ok = confirm_provision(port, dev_id)
-                    if not ok:
-                        cprint(f"Skipping provisioning of {port}")
+                    hello, dev_id = get_device_info(ser)
+                    
+                    already_provisioned = check_already_provisioned(dev_id, store_path)
+                    if already_provisioned:
+                        cprint(f"[⚠️] Device {dev_id} is already provisioned.")
+                    
+                    if not handle_provision_confirmation(port, dev_id, already_provisioned, args.no_confirm):
                         try:
                             ser.close()
                         except Exception:
                             pass
-                        seen = set(list_serial_ports())
+                        # Keep port in seen so it won't be detected again until removed and replugged
                         continue
 
                     entry = provision_device(ser, key_version=args.key_version, validate=not args.no_validate, store_path=store_path, master_key=master_key_bytes, master_signing_key=master_signing_key)
@@ -1006,18 +962,27 @@ def main(argv: Optional[List[str]] = None) -> int:
                     cprint(json.dumps(entry, indent=2))
                 except Exception as e:
                     cprint(f"Provisioning error for {port}: {e}")
+                    # On error, keep port in seen so we don't immediately retry
                 finally:
                     try:
                         ser.close()
                     except Exception:
                         pass
 
-                # After provisioning, wait until device is removed before listening for the next new port
+                # After provisioning (or error), wait until device is removed before listening for the next new port
                 cprint(f"Waiting for {port} to be removed before next cycle...")
-                wait_for_removal(port)
-                cprint(f"{port} removed; resuming watch for new ports.")
-                # update seen list to current
-                seen = set(list_serial_ports())
+                try:
+                    wait_for_removal(port)
+                    cprint(f"{port} removed; resuming watch for new ports.")
+                    # Remove the port from seen so it can be detected again when replugged
+                    seen.discard(port)
+                except KeyboardInterrupt:
+                    # If interrupted during wait, keep the port in seen so it won't be provisioned again
+                    # if the device is still connected when script continues/restarts
+                    cprint(f"[i] Interrupted while waiting for {port} removal. Port kept in seen list.")
+                    if port not in seen:
+                        seen.add(port)
+                    raise  # Re-raise to be caught by outer handler
 
     except KeyboardInterrupt:
         cprint("Interrupted by user, exiting.")

@@ -30,6 +30,9 @@ private:
     void cmdDump(Storage& storage, int offset, int count);
     void cmdProvisionKey(Storage& storage, int version, const char* keyHex);
     void cmdSignState(Storage& storage, const char* nonceHex);
+#ifdef ENABLE_TEST_COMMANDS
+    void cmdGetKey(Storage& storage);
+#endif
 
     // utils
     void printHex(const uint8_t* data, size_t len);

@@ -51,7 +51,9 @@ void Storage::loop() {
     if (!_dirty) return;
 
     uint32_t now = millis();
-    if (now - _lastSaveMs >= 5000) {   // 5s delayed write
+    // Use delayed write to batch multiple changes and reduce flash write cycles
+    // This significantly extends flash memory lifetime by reducing write frequency
+    if (now - _lastSaveMs >= STORAGE_DELAYED_WRITE_MS) {
         saveNow();
     }
 }
@@ -82,6 +84,9 @@ void Storage::clearAll() {
     memcpy(_image.payload.selfId, selfId, DEVICE_UID_LEN);
 
     markDirty();
+    // Clear is a user command that should be persisted immediately
+    // This ensures the clear operation is not lost if power is lost
+    // However, this does consume one flash write cycle
     saveNow();
 }
 
@@ -124,6 +129,12 @@ void Storage::setSecretKey(uint8_t version, const uint8_t key[32]) {
     _image.payload.keyVersion = version;
     memcpy(_image.payload.secretKey, key, 32);
     markDirty();
+    // CRITICAL: Write immediately for secret key (provisioning operation)
+    // This is intentionally NOT delayed because:
+    // 1. It's critical security data that must be persisted immediately
+    // 2. It happens rarely (once per device during provisioning)
+    // 3. The immediate write ensures the key is saved even if power is lost
+    // This one-time immediate write is acceptable for flash wear concerns
     saveNow();
 }
 
@@ -156,10 +167,40 @@ bool Storage::loadFromNvm() {
 
 
 bool Storage::writeToNvm() {
+    // FLASH WRITE CYCLE MANAGEMENT:
+    // - Each call to writeToNvm() triggers a full page erase/write cycle
+    // - STM32L0 flash has ~10,000 erase/write cycles per page
+    // - Writing ~896 bytes counts as one write cycle regardless of how many bytes change
+    // - We minimize writes by:
+    //   1. Delayed writes (30s) to batch multiple changes
+    //   2. Only writing when data actually changes (dirty flag)
+    //   3. Immediate writes only for critical data (secret key provision)
+    
+    // Write all bytes - on STM32, each EEPROM.write() can take 5-10ms
+    // Writing ~896 bytes can block for 6-7 seconds, which blocks serial processing!
+    // This is why commands like CLEAR and PROVISION_KEY acknowledge BEFORE calling saveNow()
+    
+    // Write in chunks with periodic yields to allow serial interrupts to be processed
+    const size_t CHUNK_SIZE = 32;  // Write 32 bytes at a time
     for (size_t i = 0; i < sizeof(PersistImageV1); ++i) {
         EEPROM.write(STORAGE_EEPROM_BASE + i, ((uint8_t*)&_image)[i]);
+        
+        // Every CHUNK_SIZE bytes, yield to allow serial processing
+        // This prevents missing serial commands during long EEPROM writes
+        if ((i % CHUNK_SIZE) == (CHUNK_SIZE - 1)) {
+            // Yield briefly - this allows serial RX interrupts to be processed
+            // Serial.poll() can then read incoming commands
+            delay(1);
+        }
     }
-
+    
+    // Note: STM32 Arduino EEPROM library typically commits automatically,
+    // but some implementations may require explicit commit(). Check your platform.
+    // For now, we don't call commit() as it may not exist on all STM32 cores.
+    
+    // TODO: Consider implementing write cycle counting to track flash wear
+    // TODO: For production, consider wear leveling across multiple flash pages
+    
     return true;
 }
 

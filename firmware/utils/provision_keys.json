@@ -1,0 +1,26 @@
+{
+  "0E4731343935353900180040": {
+    "device_id": "0E4731343935353900180040",
+    "key_version": 1,
+    "secret_key": "A01142959E63B9634420EE784EF6B55CEAEEE8FB6106269984CEBFB621A36D74",
+    "provisioned_at": 1766226737,
+    "validation": {
+      "nonce": "A5F73D6C0F2D5C626111C0B4452BC60A",
+      "hmac": "FCB77C827D56B9E481F18D6A491C44AFC77F4F5522365387269EF3B940C8B948",
+      "totalTapCount": 0,
+      "linkCount": 0
+    }
+  },
+  "0F4731343935353900440044": {
+    "device_id": "0F4731343935353900440044",
+    "key_version": 1,
+    "secret_key": "7AE5E6C7CA63CED275B2BDBE8E38FF43497614A621E314444E0362F7E0CED442",
+    "provisioned_at": 1766201485,
+    "validation": {
+      "nonce": "E441DC1AD4763F8ADC09D1AB52C00D23",
+      "hmac": "FCA231923C088ED00C83BEE90DEB9F468435C165A7C77281FD69D0CBD7B0C28E",
+      "totalTapCount": 0,
+      "linkCount": 0
+    }
+  }
+}

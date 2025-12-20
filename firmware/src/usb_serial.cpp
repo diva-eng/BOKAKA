@@ -44,8 +44,28 @@ void UsbCommandHandler::printHex(const uint8_t* data, size_t len) {
 void UsbCommandHandler::begin(unsigned long baud)
 {
     Serial.begin(baud);
-    // For some cores, need to wait for Serial to be ready
-    // You can also do while(!Serial) {} outside
+    
+    // On STM32 USB Serial (CDC), we need to wait for the USB connection to be fully established
+    // and flush any initialization noise from the buffer. This prevents the first command
+    // from being lost or corrupted.
+    
+    // Wait for USB Serial to be ready (STM32 CDC needs time to enumerate)
+    // Give it time to establish the USB connection
+    delay(500);
+    
+    // Flush any initialization noise or leftover data from the input buffer
+    // This is critical - without this, the first command can be corrupted or lost
+    // Some STM32 USB CDC implementations may have initialization data or noise
+    uint32_t flushStart = millis();
+    while (Serial.available() > 0 && (millis() - flushStart < 100)) {
+        Serial.read();
+        delay(1);  // Small delay to allow buffer to refill if needed
+    }
+    
+    // Additional delay to ensure USB CDC is fully ready after flushing
+    delay(100);
+    
+    // Reset command buffer state
     _len = 0;
 }
 
@@ -145,6 +165,7 @@ void UsbCommandHandler::handleLine(Storage &storage, const char *line)
         char* tokKey = strtok(nullptr, " \t");
         if (!tokVer || !tokKey) {
             Serial.println("{\"event\":\"error\",\"msg\":\"PROVISION_KEY args\"}");
+            Serial.flush();
             return;
         }
         int ver = atoi(tokVer);
@@ -153,15 +174,21 @@ void UsbCommandHandler::handleLine(Storage &storage, const char *line)
         char* tokNonce = strtok(nullptr, " \t");
         if (!tokNonce) {
             Serial.println("{\"event\":\"error\",\"msg\":\"SIGN_STATE args\"}");
+            Serial.flush();
             return;
         }
         cmdSignState(storage, tokNonce);
+#ifdef ENABLE_TEST_COMMANDS
+    } else if (strcmp(cmd, "GET_KEY") == 0) {
+        cmdGetKey(storage);
+#endif
     }
     else
     {
         Serial.print("{\"event\":\"error\",\"msg\":\"unknown command: ");
         Serial.print(cmd);
         Serial.println("\"}");
+        Serial.flush();
     }
 }
 
@@ -184,9 +211,8 @@ void UsbCommandHandler::cmdHello(Storage &storage)
 
     Serial.print("\",\"hash\":\"");
     Serial.print(FW_BUILD_HASH);
-    Serial.print("\"}");
-
-    Serial.println("}");
+    Serial.println("\"}");
+    Serial.flush();
 }
 
 void UsbCommandHandler::cmdGetState(Storage &storage)
@@ -199,13 +225,17 @@ void UsbCommandHandler::cmdGetState(Storage &storage)
     Serial.print(",\"linkCount\":");
     Serial.print(st.linkCount);
     Serial.println("}");
+    Serial.flush();
 }
 
 void UsbCommandHandler::cmdClear(Storage &storage)
 {
-    storage.clearAll();
-
+    // Acknowledge immediately before performing potentially blocking NVM writes
     Serial.println("{\"event\":\"ack\",\"cmd\":\"CLEAR\"}");
+    Serial.flush();
+    delay(10);
+
+    storage.clearAll();
 }
 
 void UsbCommandHandler::cmdDump(Storage &storage, int offset, int count)
@@ -220,6 +250,7 @@ void UsbCommandHandler::cmdDump(Storage &storage, int offset, int count)
     if (offset >= (int)PersistPayloadV1::MAX_LINKS)
     {
         Serial.println("{\"event\":\"links\",\"items\":[]}");
+        Serial.flush();
         return;
     }
 
@@ -252,30 +283,56 @@ void UsbCommandHandler::cmdDump(Storage &storage, int offset, int count)
     }
 
     Serial.println("]}");
+    Serial.flush();
 }
 
 void UsbCommandHandler::cmdProvisionKey(Storage& storage, int version, const char* keyHex) {
-    if (version <= 0 || version > 255) {
-        Serial.println("{\"event\":\"error\",\"msg\":\"invalid keyVersion\"}");
-        return;
-    }
+        if (version <= 0 || version > 255) {
+            Serial.println("{\"event\":\"error\",\"msg\":\"invalid keyVersion\"}");
+            Serial.flush();
+            return;
+        }
 
     uint8_t key[32];
     if (!hexToBytes(keyHex, key, 32)) {
         Serial.println("{\"event\":\"error\",\"msg\":\"invalid key hex\"}");
+        Serial.flush();
         return;
     }
 
-    storage.setSecretKey((uint8_t)version, key);
-
+    // Acknowledge the provision command before performing the EEPROM write
     Serial.print("{\"event\":\"ack\",\"cmd\":\"PROVISION_KEY\",\"keyVersion\":");
     Serial.print(version);
     Serial.println("}");
+    Serial.flush();
+    delay(10);
+
+    storage.setSecretKey((uint8_t)version, key);
 }
+
+#ifdef ENABLE_TEST_COMMANDS
+void UsbCommandHandler::cmdGetKey(Storage& storage) {
+    if (!storage.hasSecretKey()) {
+        Serial.println("{\"event\":\"error\",\"msg\":\"no_key\"}");
+        Serial.flush();
+        return;
+    }
+    const uint8_t* key = storage.getSecretKey();
+    char hex[65];
+    bytesToHex(key, 32, hex);
+    Serial.print("{\"event\":\"key\",\"keyVersion\":");
+    Serial.print(storage.getKeyVersion());
+    Serial.print(",\"key\":\"");
+    Serial.print(hex);
+    Serial.println("\"}");
+    Serial.flush();
+}
+#endif
 
 void UsbCommandHandler::cmdSignState(Storage& storage, const char* nonceHex) {
     if (!storage.hasSecretKey()) {
         Serial.println("{\"event\":\"error\",\"msg\":\"no_key\"}");
+        Serial.flush();
         return;
     }
 
@@ -283,6 +340,7 @@ void UsbCommandHandler::cmdSignState(Storage& storage, const char* nonceHex) {
     size_t nonceHexLen = strlen(nonceHex);
     if (nonceHexLen == 0 || (nonceHexLen % 2) != 0 || nonceHexLen > 64) {
         Serial.println("{\"event\":\"error\",\"msg\":\"invalid nonce\"}");
+        Serial.flush();
         return;
     }
     size_t nonceLen = nonceHexLen / 2;
@@ -290,6 +348,7 @@ void UsbCommandHandler::cmdSignState(Storage& storage, const char* nonceHex) {
     uint8_t nonce[32];
     if (!hexToBytes(nonceHex, nonce, nonceLen)) {
         Serial.println("{\"event\":\"error\",\"msg\":\"invalid nonce hex\"}");
+        Serial.flush();
         return;
     }
 
@@ -341,11 +400,13 @@ void UsbCommandHandler::cmdSignState(Storage& storage, const char* nonceHex) {
     const mbedtls_md_info_t* info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
     if (!info) {
         Serial.println("{\"event\":\"error\",\"msg\":\"md_info\"}");
+        Serial.flush();
         return;
     }
     int ret = mbedtls_md_hmac(info, key, 32, msg, pos, hmac);
     if (ret != 0) {
         Serial.println("{\"event\":\"error\",\"msg\":\"hmac_failed\"}");
+        Serial.flush();
         return;
     }
 
@@ -372,4 +433,5 @@ void UsbCommandHandler::cmdSignState(Storage& storage, const char* nonceHex) {
     Serial.print(",\"hmac\":\"");
     Serial.print(hmacHex);
     Serial.println("\"}");
+    Serial.flush();
 }

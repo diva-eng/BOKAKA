@@ -16,3 +16,6 @@ struct IOneWireHal {
     virtual uint32_t micros() = 0;
     virtual void delayMicros(uint32_t us) = 0;
 };
+
+// Factory function to create HAL instance (platform-specific)
+IOneWireHal* createOneWireHal();

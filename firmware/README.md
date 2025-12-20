@@ -67,7 +67,28 @@ This repository may contain:
 - Firmware for the Bokaka card  
 - Python provisioning tools  
 - WebUSB interface and JS client  
-- Documentation for the communication protocol  
+- Documentation for the communication protocol
+
+### ⚠️ Flash Memory Wear Management
+
+The firmware uses EEPROM emulation on STM32 flash memory. **Flash wear is a critical consideration:**
+
+- **Flash Endurance**: STM32L0 flash has ~10,000 erase/write cycles per page
+- **Write Strategy**: 
+  - Regular operations (like `addLink()`) use a 30-second delayed write to batch changes
+  - Critical operations (like `setSecretKey()`) write immediately but occur rarely
+  - Each write consumes one flash cycle regardless of how many bytes change
+
+**Lifetime Estimates** (for <100 links/event, multiple events/year):
+- **Realistic case**: ~40 years at 10 events/year
+- **Worst case**: ~10 years if writes aren't batched
+- **With external flash**: 400+ years (recommended for production)
+
+📊 **See [Flash Lifetime Analysis](docs/FLASH_LIFETIME_ANALYSIS.md) for detailed calculations and recommendations.**
+
+For production use with high reliability requirements, consider external SPI flash with encryption (see analysis document).
+
+See `include/storage.h` for configuration and `src/storage.cpp` for implementation details.  
 
 ---
 
