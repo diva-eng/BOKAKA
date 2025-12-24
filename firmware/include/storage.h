@@ -1,6 +1,6 @@
 #pragma once
-#include <Arduino.h>
 #include <stdint.h>
+#include <string.h>
 #include "device_id.h"
 
 // =====================================================

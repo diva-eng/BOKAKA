@@ -1,6 +1,6 @@
 #pragma once
-#include <Arduino.h>
 #include <stdint.h>
+#include <cstddef>  // for size_t
 
 constexpr size_t DEVICE_UID_LEN = 12;            // STM32 UID = 96 bits = 12 bytes
 constexpr size_t DEVICE_UID_HEX_LEN = 24;        // 12 bytes -> 24 hex chars

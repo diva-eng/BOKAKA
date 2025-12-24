@@ -1,6 +1,9 @@
 #include "usb_serial.h"
 #include "fw_config.h"
+#include "platform_serial.h"
+#include "platform_timing.h"
 #include "mbedtls/md.h"
+#include <cstdlib>  // for atoi
 
 // ========= util =========
 bool UsbCommandHandler::hexToBytes(const char* hex, uint8_t* out, size_t outLen) {
@@ -36,14 +39,13 @@ void UsbCommandHandler::bytesToHex(const uint8_t* in, size_t len, char* out) {
 
 void UsbCommandHandler::printHex(const uint8_t* data, size_t len) {
     for (size_t i = 0; i < len; ++i) {
-        if (data[i] < 0x10) Serial.print("0");
-        Serial.print(data[i], HEX);
+        platform_serial_print_hex(data[i]);
     }
 }
 
 void UsbCommandHandler::begin(unsigned long baud)
 {
-    Serial.begin(baud);
+    platform_serial_begin(baud);
     
     // On STM32 USB Serial (CDC), we need to wait for the USB connection to be fully established
     // and flush any initialization noise from the buffer. This prevents the first command
@@ -51,19 +53,19 @@ void UsbCommandHandler::begin(unsigned long baud)
     
     // Wait for USB Serial to be ready (STM32 CDC needs time to enumerate)
     // Give it time to establish the USB connection
-    delay(500);
+    platform_delay_ms(500);
     
     // Flush any initialization noise or leftover data from the input buffer
     // This is critical - without this, the first command can be corrupted or lost
     // Some STM32 USB CDC implementations may have initialization data or noise
-    uint32_t flushStart = millis();
-    while (Serial.available() > 0 && (millis() - flushStart < 100)) {
-        Serial.read();
-        delay(1);  // Small delay to allow buffer to refill if needed
+    uint32_t flushStart = platform_millis();
+    while (platform_serial_available() > 0 && (platform_millis() - flushStart < 100)) {
+        platform_serial_read();
+        platform_delay_ms(1);  // Small delay to allow buffer to refill if needed
     }
     
     // Additional delay to ensure USB CDC is fully ready after flushing
-    delay(100);
+    platform_delay_ms(100);
     
     // Reset command buffer state
     _len = 0;
@@ -72,9 +74,10 @@ void UsbCommandHandler::begin(unsigned long baud)
 // Call inside loop()
 void UsbCommandHandler::poll(Storage &storage)
 {
-    while (Serial.available() > 0)
+    while (platform_serial_available() > 0)
     {
-        char c = Serial.read();
+        int c = platform_serial_read();
+        if (c < 0) break;  // No data available
 
         // Support \r\n / \n as line endings
         if (c == '\r')
@@ -164,8 +167,8 @@ void UsbCommandHandler::handleLine(Storage &storage, const char *line)
         char* tokVer = strtok(nullptr, " \t");
         char* tokKey = strtok(nullptr, " \t");
         if (!tokVer || !tokKey) {
-            Serial.println("{\"event\":\"error\",\"msg\":\"PROVISION_KEY args\"}");
-            Serial.flush();
+            platform_serial_println("{\"event\":\"error\",\"msg\":\"PROVISION_KEY args\"}");
+            platform_serial_flush();
             return;
         }
         int ver = atoi(tokVer);
@@ -173,8 +176,8 @@ void UsbCommandHandler::handleLine(Storage &storage, const char *line)
     } else if (strcmp(cmd, "SIGN_STATE") == 0) {
         char* tokNonce = strtok(nullptr, " \t");
         if (!tokNonce) {
-            Serial.println("{\"event\":\"error\",\"msg\":\"SIGN_STATE args\"}");
-            Serial.flush();
+            platform_serial_println("{\"event\":\"error\",\"msg\":\"SIGN_STATE args\"}");
+            platform_serial_flush();
             return;
         }
         cmdSignState(storage, tokNonce);
@@ -185,10 +188,10 @@ void UsbCommandHandler::handleLine(Storage &storage, const char *line)
     }
     else
     {
-        Serial.print("{\"event\":\"error\",\"msg\":\"unknown command: ");
-        Serial.print(cmd);
-        Serial.println("\"}");
-        Serial.flush();
+        platform_serial_print("{\"event\":\"error\",\"msg\":\"unknown command: ");
+        platform_serial_print(cmd);
+        platform_serial_println("\"}");
+        platform_serial_flush();
     }
 }
 
@@ -197,43 +200,43 @@ void UsbCommandHandler::cmdHello(Storage &storage)
     char hexId[DEVICE_UID_HEX_LEN + 1];
     getDeviceUidHex(hexId);
 
-    Serial.print("{\"event\":\"hello\"");
-    Serial.print(",\"device_id\":\"");
-    Serial.print(hexId);
+    platform_serial_print("{\"event\":\"hello\"");
+    platform_serial_print(",\"device_id\":\"");
+    platform_serial_print(hexId);
 
-    Serial.print("\",\"fw\":\"");
-    Serial.print(FW_VERSION_STRING);
+    platform_serial_print("\",\"fw\":\"");
+    platform_serial_print(FW_VERSION_STRING);
 
-    Serial.print("\",\"build\":\"");
-    Serial.print(FW_BUILD_DATE);
-    Serial.print(" ");
-    Serial.print(FW_BUILD_TIME);
+    platform_serial_print("\",\"build\":\"");
+    platform_serial_print(FW_BUILD_DATE);
+    platform_serial_print(" ");
+    platform_serial_print(FW_BUILD_TIME);
 
-    Serial.print("\",\"hash\":\"");
-    Serial.print(FW_BUILD_HASH);
-    Serial.println("\"}");
-    Serial.flush();
+    platform_serial_print("\",\"hash\":\"");
+    platform_serial_print(FW_BUILD_HASH);
+    platform_serial_println("\"}");
+    platform_serial_flush();
 }
 
 void UsbCommandHandler::cmdGetState(Storage &storage)
 {
     auto &st = storage.state();
 
-    Serial.print("{\"event\":\"state\"");
-    Serial.print(",\"totalTapCount\":");
-    Serial.print(st.totalTapCount);
-    Serial.print(",\"linkCount\":");
-    Serial.print(st.linkCount);
-    Serial.println("}");
-    Serial.flush();
+    platform_serial_print("{\"event\":\"state\"");
+    platform_serial_print(",\"totalTapCount\":");
+    platform_serial_print((uint32_t)st.totalTapCount);
+    platform_serial_print(",\"linkCount\":");
+    platform_serial_print((uint32_t)st.linkCount);
+    platform_serial_println("}");
+    platform_serial_flush();
 }
 
 void UsbCommandHandler::cmdClear(Storage &storage)
 {
     // Acknowledge immediately before performing potentially blocking NVM writes
-    Serial.println("{\"event\":\"ack\",\"cmd\":\"CLEAR\"}");
-    Serial.flush();
-    delay(10);
+    platform_serial_println("{\"event\":\"ack\",\"cmd\":\"CLEAR\"}");
+    platform_serial_flush();
+    platform_delay_ms(10);
 
     storage.clearAll();
 }
@@ -249,8 +252,8 @@ void UsbCommandHandler::cmdDump(Storage &storage, int offset, int count)
 
     if (offset >= (int)PersistPayloadV1::MAX_LINKS)
     {
-        Serial.println("{\"event\":\"links\",\"items\":[]}");
-        Serial.flush();
+        platform_serial_println("{\"event\":\"links\",\"items\":[]}");
+        platform_serial_flush();
         return;
     }
 
@@ -264,48 +267,48 @@ void UsbCommandHandler::cmdDump(Storage &storage, int offset, int count)
     if (end > maxAvailable)
         end = maxAvailable;
 
-    Serial.print("{\"event\":\"links\",\"offset\":");
-    Serial.print(offset);
-    Serial.print(",\"count\":");
-    Serial.print(end - offset);
-    Serial.print(",\"items\":[");
+    platform_serial_print("{\"event\":\"links\",\"offset\":");
+    platform_serial_print(offset);
+    platform_serial_print(",\"count\":");
+    platform_serial_print(end - offset);
+    platform_serial_print(",\"items\":[");
     bool first = true;
 
     for (int i = offset; i < end; ++i)
     {
         if (!first)
-            Serial.print(",");
+            platform_serial_print(",");
         first = false;
 
-        Serial.print("{\"peer\":\"");
+        platform_serial_print("{\"peer\":\"");
         printHex(st.links[i].peerId, DEVICE_UID_LEN);
-        Serial.print("\"}");
+        platform_serial_print("\"}");
     }
 
-    Serial.println("]}");
-    Serial.flush();
+    platform_serial_println("]}");
+    platform_serial_flush();
 }
 
 void UsbCommandHandler::cmdProvisionKey(Storage& storage, int version, const char* keyHex) {
         if (version <= 0 || version > 255) {
-            Serial.println("{\"event\":\"error\",\"msg\":\"invalid keyVersion\"}");
-            Serial.flush();
+            platform_serial_println("{\"event\":\"error\",\"msg\":\"invalid keyVersion\"}");
+            platform_serial_flush();
             return;
         }
 
     uint8_t key[32];
     if (!hexToBytes(keyHex, key, 32)) {
-        Serial.println("{\"event\":\"error\",\"msg\":\"invalid key hex\"}");
-        Serial.flush();
+        platform_serial_println("{\"event\":\"error\",\"msg\":\"invalid key hex\"}");
+        platform_serial_flush();
         return;
     }
 
     // Acknowledge the provision command before performing the EEPROM write
-    Serial.print("{\"event\":\"ack\",\"cmd\":\"PROVISION_KEY\",\"keyVersion\":");
-    Serial.print(version);
-    Serial.println("}");
-    Serial.flush();
-    delay(10);
+    platform_serial_print("{\"event\":\"ack\",\"cmd\":\"PROVISION_KEY\",\"keyVersion\":");
+    platform_serial_print(version);
+    platform_serial_println("}");
+    platform_serial_flush();
+    platform_delay_ms(10);
 
     storage.setSecretKey((uint8_t)version, key);
 }
@@ -313,42 +316,42 @@ void UsbCommandHandler::cmdProvisionKey(Storage& storage, int version, const cha
 #ifdef ENABLE_TEST_COMMANDS
 void UsbCommandHandler::cmdGetKey(Storage& storage) {
     if (!storage.hasSecretKey()) {
-        Serial.println("{\"event\":\"error\",\"msg\":\"no_key\"}");
-        Serial.flush();
+        platform_serial_println("{\"event\":\"error\",\"msg\":\"no_key\"}");
+        platform_serial_flush();
         return;
     }
     const uint8_t* key = storage.getSecretKey();
     char hex[65];
     bytesToHex(key, 32, hex);
-    Serial.print("{\"event\":\"key\",\"keyVersion\":");
-    Serial.print(storage.getKeyVersion());
-    Serial.print(",\"key\":\"");
-    Serial.print(hex);
-    Serial.println("\"}");
-    Serial.flush();
+    platform_serial_print("{\"event\":\"key\",\"keyVersion\":");
+    platform_serial_print((uint32_t)storage.getKeyVersion());
+    platform_serial_print(",\"key\":\"");
+    platform_serial_print(hex);
+    platform_serial_println("\"}");
+    platform_serial_flush();
 }
 #endif
 
 void UsbCommandHandler::cmdSignState(Storage& storage, const char* nonceHex) {
     if (!storage.hasSecretKey()) {
-        Serial.println("{\"event\":\"error\",\"msg\":\"no_key\"}");
-        Serial.flush();
+        platform_serial_println("{\"event\":\"error\",\"msg\":\"no_key\"}");
+        platform_serial_flush();
         return;
     }
 
     // Parse nonce (variable length, must be even and no more than 32 bytes)
     size_t nonceHexLen = strlen(nonceHex);
     if (nonceHexLen == 0 || (nonceHexLen % 2) != 0 || nonceHexLen > 64) {
-        Serial.println("{\"event\":\"error\",\"msg\":\"invalid nonce\"}");
-        Serial.flush();
+        platform_serial_println("{\"event\":\"error\",\"msg\":\"invalid nonce\"}");
+        platform_serial_flush();
         return;
     }
     size_t nonceLen = nonceHexLen / 2;
 
     uint8_t nonce[32];
     if (!hexToBytes(nonceHex, nonce, nonceLen)) {
-        Serial.println("{\"event\":\"error\",\"msg\":\"invalid nonce hex\"}");
-        Serial.flush();
+        platform_serial_println("{\"event\":\"error\",\"msg\":\"invalid nonce hex\"}");
+        platform_serial_flush();
         return;
     }
 
@@ -399,14 +402,14 @@ void UsbCommandHandler::cmdSignState(Storage& storage, const char* nonceHex) {
     uint8_t hmac[32];
     const mbedtls_md_info_t* info = mbedtls_md_info_from_type(MBEDTLS_MD_SHA256);
     if (!info) {
-        Serial.println("{\"event\":\"error\",\"msg\":\"md_info\"}");
-        Serial.flush();
+        platform_serial_println("{\"event\":\"error\",\"msg\":\"md_info\"}");
+        platform_serial_flush();
         return;
     }
     int ret = mbedtls_md_hmac(info, key, 32, msg, pos, hmac);
     if (ret != 0) {
-        Serial.println("{\"event\":\"error\",\"msg\":\"hmac_failed\"}");
-        Serial.flush();
+        platform_serial_println("{\"event\":\"error\",\"msg\":\"hmac_failed\"}");
+        platform_serial_flush();
         return;
     }
 
@@ -419,19 +422,19 @@ void UsbCommandHandler::cmdSignState(Storage& storage, const char* nonceHex) {
     // For simplicity, use selfId:
     bytesToHex(st.selfId, DEVICE_UID_LEN, devHex);
 
-    Serial.print("{\"event\":\"SIGNED_STATE\"");
-    Serial.print(",\"device_id\":\"");
-    Serial.print(devHex);
-    Serial.print("\",\"nonce\":\"");
-    Serial.print(nonceHex);
-    Serial.print("\",\"totalTapCount\":");
-    Serial.print(st.totalTapCount);
-    Serial.print(",\"linkCount\":");
-    Serial.print(lc);
-    Serial.print(",\"keyVersion\":");
-    Serial.print(keyVersion);
-    Serial.print(",\"hmac\":\"");
-    Serial.print(hmacHex);
-    Serial.println("\"}");
-    Serial.flush();
+    platform_serial_print("{\"event\":\"SIGNED_STATE\"");
+    platform_serial_print(",\"device_id\":\"");
+    platform_serial_print(devHex);
+    platform_serial_print("\",\"nonce\":\"");
+    platform_serial_print(nonceHex);
+    platform_serial_print("\",\"totalTapCount\":");
+    platform_serial_print((uint32_t)st.totalTapCount);
+    platform_serial_print(",\"linkCount\":");
+    platform_serial_print((uint32_t)lc);
+    platform_serial_print(",\"keyVersion\":");
+    platform_serial_print((uint32_t)keyVersion);
+    platform_serial_print(",\"hmac\":\"");
+    platform_serial_print(hmacHex);
+    platform_serial_println("\"}");
+    platform_serial_flush();
 }

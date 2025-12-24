@@ -9,6 +9,7 @@ TapLink::TapLink(IOneWireHal* hal, Storage* storage)
     , _lastLineChangeTime(0)
     , _lastLineState(true)
     , _negotiationBitIndex(0)
+    , _roleKnown(false)
     , _isMaster(false)
     , _rxByteIndex(0)
     , _rxBitIndex(0)
@@ -75,6 +76,7 @@ void TapLink::handleIdle() {
             _state = State::Detecting;
             _stateStartTime = now;
             _negotiationBitIndex = 0;
+            _roleKnown = false;
             _isMaster = false;
         }
     }
@@ -152,6 +154,7 @@ void TapLink::handleNegotiating() {
         if (myBit && !lineState) {
             // I sent 1 but line is low -> peer sent 0 -> I'm master (higher ID)
             _isMaster = true;
+            _roleKnown = true;
             _negotiationBitIndex = NEGOTIATION_BITS;  // Done negotiating
         } else if (myBit && lineState) {
             // Both sent 1 -> bits match, continue
@@ -185,6 +188,7 @@ void TapLink::handleNegotiating() {
             }
             // No start pulse received, assume we're master (tie-breaker)
             _isMaster = true;
+            _roleKnown = true;
         }
         
         if (_isMaster) {
@@ -201,6 +205,7 @@ void TapLink::handleNegotiating() {
         } else {
             // Slave: wait for start pulse, then receive master's ID
             _state = State::SlaveReceive;
+            _roleKnown = true;
             _stateStartTime = now;
             _rxByteIndex = 0;
             _rxBitIndex = 0;
@@ -473,6 +478,7 @@ void TapLink::reset() {
     _state = State::Idle;
     _connectionComplete = false;
     _negotiationBitIndex = 0;
+    _roleKnown = false;
     _rxByteIndex = 0;
     _rxBitIndex = 0;
     _txByteIndex = 0;

@@ -1,5 +1,6 @@
 #include "storage.h"
-#include <EEPROM.h>
+#include "platform_storage.h"
+#include "platform_timing.h"
 #include "stm32l0xx_hal.h"
 
 
@@ -7,6 +8,11 @@ Storage::Storage() {}
 
 
 bool Storage::begin() {
+    // Initialize platform storage
+    if (!platform_storage_begin(STORAGE_EEPROM_SIZE)) {
+        return false;
+    }
+    
     if (!loadFromNvm()) {
         // no valid data -> initialize blank version 1
         memset(&_image, 0, sizeof(_image));
@@ -35,7 +41,7 @@ bool Storage::begin() {
     }
 
     _dirty = false;
-    _lastSaveMs = millis();
+    _lastSaveMs = platform_millis();
     return true;
 }
 
@@ -50,7 +56,7 @@ void Storage::markDirty() {
 void Storage::loop() {
     if (!_dirty) return;
 
-    uint32_t now = millis();
+    uint32_t now = platform_millis();
     // Use delayed write to batch multiple changes and reduce flash write cycles
     // This significantly extends flash memory lifetime by reducing write frequency
     if (now - _lastSaveMs >= STORAGE_DELAYED_WRITE_MS) {
@@ -70,7 +76,7 @@ bool Storage::saveNow() {
     bool ok = writeToNvm();
     if (ok) {
         _dirty = false;
-        _lastSaveMs = millis();
+        _lastSaveMs = platform_millis();
     }
     return ok;
 }
@@ -148,7 +154,7 @@ bool Storage::loadFromNvm() {
     PersistImageV1 temp;
 
     for (size_t i = 0; i < sizeof(PersistImageV1); ++i) {
-        ((uint8_t*)&temp)[i] = EEPROM.read(STORAGE_EEPROM_BASE + i);
+        ((uint8_t*)&temp)[i] = platform_storage_read(STORAGE_EEPROM_BASE + i);
     }
 
     if (temp.header.magic != STORAGE_MAGIC) return false;
@@ -183,20 +189,19 @@ bool Storage::writeToNvm() {
     // Write in chunks with periodic yields to allow serial interrupts to be processed
     const size_t CHUNK_SIZE = 32;  // Write 32 bytes at a time
     for (size_t i = 0; i < sizeof(PersistImageV1); ++i) {
-        EEPROM.write(STORAGE_EEPROM_BASE + i, ((uint8_t*)&_image)[i]);
+        platform_storage_write(STORAGE_EEPROM_BASE + i, ((uint8_t*)&_image)[i]);
         
         // Every CHUNK_SIZE bytes, yield to allow serial processing
-        // This prevents missing serial commands during long EEPROM writes
+        // This prevents missing serial commands during long storage writes
         if ((i % CHUNK_SIZE) == (CHUNK_SIZE - 1)) {
             // Yield briefly - this allows serial RX interrupts to be processed
             // Serial.poll() can then read incoming commands
-            delay(1);
+            platform_delay_ms(1);
         }
     }
     
-    // Note: STM32 Arduino EEPROM library typically commits automatically,
-    // but some implementations may require explicit commit(). Check your platform.
-    // For now, we don't call commit() as it may not exist on all STM32 cores.
+    // Commit writes to persistent storage
+    platform_storage_commit();
     
     // TODO: Consider implementing write cycle counting to track flash wear
     // TODO: For production, consider wear leveling across multiple flash pages

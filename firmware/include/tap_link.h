@@ -47,6 +47,10 @@ public:
     // Get current state
     State getState() const { return _state; }
     
+    // Role information
+    bool hasRole() const { return _roleKnown; }
+    bool isMaster() const { return _isMaster; }
+    
     // Check if a connection was just completed
     bool isConnectionComplete() const;
     
@@ -101,6 +105,7 @@ private:
     uint8_t _selfId[DEVICE_UID_LEN];
     uint8_t _peerId[DEVICE_UID_LEN];
     uint8_t _negotiationBitIndex;
+    bool _roleKnown;
     bool _isMaster;
     
     // Reception state

@@ -1,5 +1,7 @@
 #pragma once
-#include <Arduino.h>
+#include <stdint.h>
+#include <stddef.h>
+#include <string.h>
 #include "storage.h"
 #include "device_id.h"
 
