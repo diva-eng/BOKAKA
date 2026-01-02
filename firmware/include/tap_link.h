@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include "tap_link_hal.h"
 #include "device_id.h"
+#include "i_tap_link.h"
 
 // =====================================================
 // Tap Link Detection and Negotiation
@@ -22,32 +23,14 @@
 // - When another device connects and drives the line LOW, we detect it
 // - Uses debouncing to avoid false positives from noise
 //
-
-// =====================================================
-// Command Protocol (for Connected state)
-// =====================================================
-// Master-initiated command/response protocol.
-// Master sends START pulse (5ms) followed by command byte.
-// Slave responds with response byte(s).
+// NOTE: TapCommand and TapResponse enums are now defined in i_tap_link.h
 //
-// Expandable command set - add new commands as needed.
 
-enum class TapCommand : uint8_t {
-    NONE = 0x00,           // No command / invalid
-    CHECK_READY = 0x01,    // Check if slave is ready (response: ACK/NAK)
-    REQUEST_ID = 0x02,     // Request slave to send its device ID (response: ACK + 12 bytes UID)
-    SEND_ID = 0x03,        // Master sending its ID to slave (payload: 12 bytes UID, response: ACK/NAK)
-    // Add more commands as needed (0x04-0xFF available)
-};
-
-enum class TapResponse : uint8_t {
-    NONE = 0x00,           // No response / timeout
-    ACK = 0x06,            // Acknowledged / Ready
-    NAK = 0x15,            // Not acknowledged / Not ready
-    // Add more responses as needed
-};
-
-class TapLink {
+#ifdef EVAL_BOARD_TEST
+class TapLink : public ITapLinkEval {
+#else
+class TapLink : public ITapLinkBattery {
+#endif
 public:
     enum class DetectionState {
 #ifdef EVAL_BOARD_TEST
@@ -67,90 +50,93 @@ public:
     TapLink(IOneWireHal* hal);
 
     // Main detection logic - call this in loop()
-    void poll();
+    void poll() override;
 
 #ifdef EVAL_BOARD_TEST
     // Send a presence pulse to signal we're here (call periodically)
-    void sendPresencePulse();
+    void sendPresencePulse() override;
 #endif
 
     // Get current detection state
     DetectionState getState() const { return _state; }
 
     // Role information (valid after negotiation complete)
-    bool hasRole() const { return _roleKnown; }
-    bool isMaster() const { return _isMaster; }
+    bool hasRole() const override { return _roleKnown; }
+    bool isMaster() const override { return _isMaster; }
+
+    // Get own UID
+    const uint8_t* getSelfId() const override { return _selfId; }
+
+    // ITapLink interface - state queries
+    bool isConnected() const override { return _state == DetectionState::Connected; }
+    bool isNegotiating() const override { return _state == DetectionState::Negotiating; }
+#ifdef EVAL_BOARD_TEST
+    bool isIdle() const override { return _state == DetectionState::NoConnection; }
+#else
+    bool isIdle() const override { return _state == DetectionState::Sleeping; }
+#endif
 
 #ifdef EVAL_BOARD_TEST
     // Check if connection was just detected (call once per detection)
-    bool isConnectionDetected();
+    bool isConnectionDetected() override;
 
     // Check if negotiation just completed
-    bool isNegotiationComplete();
+    bool isNegotiationComplete() override;
 
     // Reset detection state (after handling connection)
-    void reset();
+    void reset() override;
 
     // === Command Protocol (for Connected state) ===
     
     // Master: Send a command and receive response
-    // Returns the response, or TapResponse::NONE on timeout/error
-    TapResponse masterSendCommand(TapCommand cmd);
+    TapResponse masterSendCommand(TapCommand cmd) override;
     
     // Slave: Check for incoming command (non-blocking)
-    // Returns true if a START pulse is detected (command incoming)
-    bool slaveHasCommand();
+    bool slaveHasCommand() override;
     
-    // Slave: Receive the command (blocking, call after slaveHasCommand() returns true)
-    // Returns the command, or TapCommand::NONE on timeout/error
-    TapCommand slaveReceiveCommand();
+    // Slave: Receive the command (blocking)
+    TapCommand slaveReceiveCommand() override;
     
     // Slave: Send response to master
-    void slaveSendResponse(TapResponse response);
+    void slaveSendResponse(TapResponse response) override;
     
-    // Check if peer is ready (set when master receives ACK from CHECK_READY)
-    bool isPeerReady() const { return _peerReady; }
+    // Check if peer is ready
+    bool isPeerReady() const override { return _peerReady; }
     
-    // Clear peer ready flag (e.g., when starting new exchange)
-    void clearPeerReady() { _peerReady = false; }
+    // Clear peer ready flag
+    void clearPeerReady() override { _peerReady = false; }
     
     // === ID Exchange Commands ===
     
-    // Master: Request slave's UID (sends REQUEST_ID, receives ACK + 12 bytes)
-    // Returns true on success, fills peerIdOut with slave's UID
-    bool masterRequestId(uint8_t peerIdOut[DEVICE_UID_LEN]);
+    // Master: Request slave's UID
+    bool masterRequestId(uint8_t peerIdOut[DEVICE_UID_LEN]) override;
     
-    // Master: Send master's UID to slave (sends SEND_ID + 12 bytes, receives ACK)
-    // Returns true if slave acknowledged
-    bool masterSendId();
+    // Master: Send master's UID to slave
+    bool masterSendId() override;
     
-    // Slave: Handle REQUEST_ID command (sends ACK + own UID)
-    void slaveHandleRequestId();
+    // Slave: Handle REQUEST_ID command
+    void slaveHandleRequestId() override;
     
-    // Slave: Handle SEND_ID command (receives 12 bytes UID, sends ACK)
-    // Returns true on success, fills peerIdOut with master's UID
-    bool slaveHandleSendId(uint8_t peerIdOut[DEVICE_UID_LEN]);
+    // Slave: Handle SEND_ID command
+    bool slaveHandleSendId(uint8_t peerIdOut[DEVICE_UID_LEN]) override;
     
-    // Check if ID exchange has been completed for this connection
-    bool isIdExchangeComplete() const { return _idExchangeComplete; }
-    
-    // Get own UID (for reference)
-    const uint8_t* getSelfId() const { return _selfId; }
+    // Check if ID exchange has been completed
+    bool isIdExchangeComplete() const override { return _idExchangeComplete; }
 #else
     // Check if connection was just established
-    bool isConnectionEstablished();
+    bool isConnectionEstablished() override;
 
     // Check if connection was just lost
-    bool isConnectionLost();
+    bool isConnectionLost() override;
 
     // Configure for sleep mode (call before entering sleep)
-    void prepareForSleep();
+    void prepareForSleep() override;
 
     // Handle wake-up from sleep (call after wake-up)
-    void handleWakeUp();
+    void handleWakeUp() override;
 
     // Reset detection state
-    void reset();
+    void reset() override;
 #endif
 
 private:

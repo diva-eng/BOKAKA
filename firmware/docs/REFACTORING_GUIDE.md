@@ -12,7 +12,8 @@ This document identifies refactoring opportunities to improve testability, test 
 | ✅ Done | `device_id.cpp` | Direct HAL dependency not abstracted | Completed |
 | ✅ Done | `usb_serial.cpp` | Tight coupling to Storage | Completed (uses IStorage) |
 | ✅ Done | `main.cpp` | Global state, tight coupling | Completed (Application class) |
-| 🟡 Medium | `tap_link.cpp` | `#ifdef EVAL_BOARD_TEST` duplication | Pending |
+| ✅ Done | `tap_link.h` | No interface for testing | Completed (ITapLink interfaces) |
+| 🟢 Low | `tap_link.cpp` | `#ifdef` still in implementation | Future: split into separate files |
 
 ---
 
@@ -40,6 +41,14 @@ This document identifies refactoring opportunities to improve testability, test 
 - Components (Storage, TapLink, StatusDisplay) are class members, not globals
 - Master/slave command handling in separate methods for clarity
 - Battery mode handling isolated in `handleBatteryMode()`
+
+### ✅ 5. TapLink Interfaces (`i_tap_link.h`)
+- `ITapLink`: Base interface with common operations (poll, hasRole, isMaster, reset)
+- `ITapLinkEval`: Eval board mode with command protocol, ID exchange
+- `ITapLinkBattery`: Battery mode with sleep/wake management
+- `TapLink` class now implements the appropriate interface based on build mode
+- Common state queries: `isConnected()`, `isNegotiating()`, `isIdle()`
+- Enables creating mock TapLink for unit testing
 
 ---
 
