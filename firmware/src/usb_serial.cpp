@@ -1,4 +1,5 @@
 #include "usb_serial.h"
+#include "storage.h"  // For PersistPayloadV1
 #include "fw_config.h"
 #include "platform_serial.h"
 #include "platform_timing.h"
@@ -72,7 +73,7 @@ void UsbCommandHandler::begin(unsigned long baud)
 }
 
 // Call inside loop()
-void UsbCommandHandler::poll(Storage &storage)
+void UsbCommandHandler::poll(IStorage &storage)
 {
     while (platform_serial_available() > 0)
     {
@@ -107,7 +108,7 @@ void UsbCommandHandler::poll(Storage &storage)
     }
 }
 
-void UsbCommandHandler::handleLine(Storage &storage, const char *line)
+void UsbCommandHandler::handleLine(IStorage &storage, const char *line)
 {
     // Simple split by spaces to recognize commands
     // Support (case-insensitive):
@@ -195,7 +196,7 @@ void UsbCommandHandler::handleLine(Storage &storage, const char *line)
     }
 }
 
-void UsbCommandHandler::cmdHello(Storage &storage)
+void UsbCommandHandler::cmdHello(IStorage &storage)
 {
     char hexId[DEVICE_UID_HEX_LEN + 1];
     getDeviceUidHex(hexId);
@@ -216,7 +217,7 @@ void UsbCommandHandler::cmdHello(Storage &storage)
     platform_serial_flush();
 }
 
-void UsbCommandHandler::cmdGetState(Storage &storage)
+void UsbCommandHandler::cmdGetState(IStorage &storage)
 {
     auto &st = storage.state();
 
@@ -229,7 +230,7 @@ void UsbCommandHandler::cmdGetState(Storage &storage)
     platform_serial_flush();
 }
 
-void UsbCommandHandler::cmdClear(Storage &storage)
+void UsbCommandHandler::cmdClear(IStorage &storage)
 {
     // Acknowledge immediately before performing potentially blocking NVM writes
     platform_serial_println("{\"event\":\"ack\",\"cmd\":\"CLEAR\"}");
@@ -239,7 +240,7 @@ void UsbCommandHandler::cmdClear(Storage &storage)
     storage.clearAll();
 }
 
-void UsbCommandHandler::cmdDump(Storage &storage, int offset, int count)
+void UsbCommandHandler::cmdDump(IStorage &storage, int offset, int count)
 {
     auto &st = storage.state();
 
@@ -287,7 +288,7 @@ void UsbCommandHandler::cmdDump(Storage &storage, int offset, int count)
     platform_serial_flush();
 }
 
-void UsbCommandHandler::cmdProvisionKey(Storage& storage, int version, const char* keyHex) {
+void UsbCommandHandler::cmdProvisionKey(IStorage& storage, int version, const char* keyHex) {
         if (version <= 0 || version > 255) {
             platform_serial_println("{\"event\":\"error\",\"msg\":\"invalid keyVersion\"}");
             platform_serial_flush();
@@ -312,7 +313,7 @@ void UsbCommandHandler::cmdProvisionKey(Storage& storage, int version, const cha
 }
 
 #ifdef ENABLE_TEST_COMMANDS
-void UsbCommandHandler::cmdGetKey(Storage& storage) {
+void UsbCommandHandler::cmdGetKey(IStorage& storage) {
     if (!storage.hasSecretKey()) {
         platform_serial_println("{\"event\":\"error\",\"msg\":\"no_key\"}");
         platform_serial_flush();
@@ -330,7 +331,7 @@ void UsbCommandHandler::cmdGetKey(Storage& storage) {
 }
 #endif
 
-void UsbCommandHandler::cmdSignState(Storage& storage, const char* nonceHex) {
+void UsbCommandHandler::cmdSignState(IStorage& storage, const char* nonceHex) {
     if (!storage.hasSecretKey()) {
         platform_serial_println("{\"event\":\"error\",\"msg\":\"no_key\"}");
         platform_serial_flush();

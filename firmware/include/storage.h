@@ -2,6 +2,7 @@
 #include <stdint.h>
 #include <string.h>
 #include "device_id.h"
+#include "i_storage.h"
 
 // =====================================================
 // Configuration
@@ -77,36 +78,36 @@ struct PersistImageV1 {
 // =====================================================
 // Storage Class
 // =====================================================
+// Implements IStorage interface for real EEPROM/flash storage.
+// For unit testing, use MockStorage (see test/mock_storage.h).
+// =====================================================
 
-class Storage {
+class Storage : public IStorage {
 public:
     Storage();
+    ~Storage() override = default;
 
-    bool begin();       // load or initialize
-    void loop();        // for delayed save
-    bool saveNow();     // force save
-    void markDirty();   // mark structure modified
+    // IStorage interface implementation
+    bool begin() override;
+    void loop() override;
+    bool saveNow() override;
+    void markDirty() override;
 
-    PersistPayloadV1& state() { return _image.payload; }
+    PersistPayloadV1& state() override { return _image.payload; }
 
-    // per-device key
-    bool hasSecretKey() const;
-    const uint8_t* getSecretKey() const;              // 32 bytes
-    uint8_t getKeyVersion() const;
-    void setSecretKey(uint8_t version, const uint8_t key[32]);
+    // Secret key management
+    bool hasSecretKey() const override;
+    const uint8_t* getSecretKey() const override;
+    uint8_t getKeyVersion() const override;
+    void setSecretKey(uint8_t version, const uint8_t key[32]) override;
 
-    void clearAll();    // reset counters & links but keep selfId
-    
-    // Add a link if it doesn't already exist
-    // Returns true if link was new and added, false if it already existed
-    bool addLink(const uint8_t peerId[DEVICE_UID_LEN]);
-    
-    // Check if a peer ID already exists in links
-    bool hasLink(const uint8_t peerId[DEVICE_UID_LEN]) const;
-    
-    void incrementTapCount();      // increment totalTapCount by 1
-    void saveTapCountOnly();       // fast save - only writes tapCount + CRC (8 bytes vs 896)
-    void saveLinkOnly();           // fast save - only writes latest link + linkCount + CRC (~18 bytes vs 896)
+    // Link management
+    void clearAll() override;
+    bool addLink(const uint8_t peerId[DEVICE_UID_LEN]) override;
+    bool hasLink(const uint8_t peerId[DEVICE_UID_LEN]) const override;
+    void incrementTapCount() override;
+    void saveTapCountOnly() override;
+    void saveLinkOnly() override;
 
 private:
     bool loadFromNvm();

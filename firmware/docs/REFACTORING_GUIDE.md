@@ -6,13 +6,33 @@ This document identifies refactoring opportunities to improve testability, test 
 
 ## Executive Summary
 
-| Priority | Area | Issue | Impact |
+| Priority | Area | Issue | Status |
 |----------|------|-------|--------|
-| 🔴 High | `main.cpp` | Arduino.h dependency + hardcoded pins | Blocks migration |
-| 🔴 High | `device_id.cpp` | Direct HAL dependency not abstracted | Blocks migration |
-| 🟡 Medium | `tap_link.cpp` | `#ifdef EVAL_BOARD_TEST` duplication | Hard to test/maintain |
-| 🟡 Medium | `main.cpp` | Global state, tight coupling | Hard to unit test |
-| 🟢 Low | `usb_serial.cpp` | Parsing coupled to execution | Could improve testing |
+| ✅ Done | `main.cpp` | Arduino.h dependency + hardcoded pins | Completed |
+| ✅ Done | `device_id.cpp` | Direct HAL dependency not abstracted | Completed |
+| ✅ Done | `usb_serial.cpp` | Tight coupling to Storage | Completed (uses IStorage) |
+| 🟡 Medium | `tap_link.cpp` | `#ifdef EVAL_BOARD_TEST` duplication | Pending |
+| 🟡 Medium | `main.cpp` | Global state, tight coupling | Pending |
+
+---
+
+## Completed Refactoring
+
+### ✅ 1. Pin Configuration Abstraction (`board_config.h`)
+- Centralized pin definitions (STATUS_LED0_PIN, STATUS_LED1_PIN, TAP_LINK_PIN)
+- Override via build flags for different boards
+- Includes Arduino.h conditionally for STM32 pin constants
+
+### ✅ 2. Device ID Abstraction (`platform_device.h`)
+- Created `platform_get_device_uid()` abstraction
+- `device_id.cpp` no longer has direct HAL dependency
+- Arduino implementation in `platform_device_arduino.cpp`
+
+### ✅ 3. Storage Interface (`i_storage.h`)
+- Abstract interface for all storage operations
+- `Storage` class implements `IStorage`
+- `UsbCommandHandler` now accepts `IStorage&` (not `Storage&`)
+- `MockStorage` class for unit testing in `test/mock_storage.h`
 
 ---
 
