@@ -208,9 +208,7 @@ void UsbCommandHandler::cmdHello(Storage &storage)
     platform_serial_print(FW_VERSION_STRING);
 
     platform_serial_print("\",\"build\":\"");
-    platform_serial_print(FW_BUILD_DATE);
-    platform_serial_print(" ");
-    platform_serial_print(FW_BUILD_TIME);
+    platform_serial_print(FW_BUILD_DATETIME);
 
     platform_serial_print("\",\"hash\":\"");
     platform_serial_print(FW_BUILD_HASH);

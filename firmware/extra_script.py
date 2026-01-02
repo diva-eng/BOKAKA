@@ -1,4 +1,5 @@
 import subprocess
+from datetime import datetime, timezone
 
 def get_git_hash():
     try:
@@ -8,14 +9,24 @@ def get_git_hash():
         print("Warning: Could not get git hash: %s" % str(e))
         return "nogit"
 
+def get_build_datetime():
+    # Use ISO 8601 format without spaces for cross-platform compatibility
+    # Format: "2026-01-02T15:30:45Z" (UTC time for reproducibility)
+    return datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
 Import("env")
 
 git_hash = get_git_hash()
-print("=== extra_script.py: Git hash is: %s ===" % git_hash)
+build_datetime = get_build_datetime()
 
-# Define FW_BUILD_HASH using BUILD_FLAGS to ensure it works
-# Format matches platformio.ini: -DMBEDTLS_CONFIG_FILE=\"mbedtls_config.h\"
-# The \\" in Python becomes \" in the compiler flag, which defines a string literal
-build_flag = '-DFW_BUILD_HASH=\\"%s\\"' % git_hash
-env.Append(BUILD_FLAGS=[build_flag])
-print("=== Added build flag: %s ===" % build_flag)
+print("=== extra_script.py: Git hash is: %s ===" % git_hash)
+print("=== extra_script.py: Build datetime is: %s ===" % build_datetime)
+
+# Define build metadata using CPPDEFINES for proper cross-platform escaping
+# SCons handles the quoting automatically when using tuple format (name, value)
+env.Append(CPPDEFINES=[
+    ("FW_BUILD_HASH", env.StringifyMacro(git_hash)),
+    ("FW_BUILD_DATETIME", env.StringifyMacro(build_datetime)),
+])
+
+print("=== Added FW_BUILD_HASH and FW_BUILD_DATETIME defines ===")

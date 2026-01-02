@@ -26,24 +26,26 @@
  
  class StatusDisplay {
  public:
-     // Ready/handshake indication shown on LED 0
-     enum class ReadyPattern {
-         Booting,
-         Idle,
-         Detecting,
-         Negotiating,
-         WaitingAck,
-         Exchanging,
-         Success,
-         Error
-     };
+    // Ready/handshake indication shown on LED 0
+    enum class ReadyPattern {
+        Booting,
+        Idle,
+        Detecting,
+        Negotiating,
+        WaitingAck,
+        Exchanging,
+        Success,
+        PeerReady,  // Peer responded to CHECK_READY - distinct pattern
+        Error
+    };
  
-     // Role indication shown on LED 1
-     enum class RolePattern {
-         Unknown,
-         Master,
-         Slave
-     };
+    // Role indication shown on LED 1
+    enum class RolePattern {
+        None,       // Steady OFF (not connected)
+        Unknown,    // Blinking (negotiating)
+        Master,     // Steady ON
+        Slave       // Slow blink
+    };
  
      StatusDisplay();
  

@@ -2,121 +2,217 @@
 #include <stdint.h>
 #include "tap_link_hal.h"
 #include "device_id.h"
-#include "storage.h"
 
 // =====================================================
-// 1-Wire Tap Link Protocol
+// Tap Link Detection and Negotiation
 // =====================================================
 //
-// Protocol Overview:
-// 1. Connection Detection: Line goes low when devices are connected
-// 2. Master/Slave Negotiation: Both devices send their device ID simultaneously
-//    - Device with higher ID becomes master
-// 3. ID Exchange:
-//    - Master sends its full device ID
-//    - Master waits for ACK from slave
-//    - Slave sends its full device ID
-// 4. Storage: Both devices store peer UID and increment connection counter
+// Two operation modes:
+// 1. EVAL_BOARD_TEST: USB-powered continuous monitoring (PlatformIO)
+// 2. BATTERY_MODE: Sleep/wake with CR2032 batteries (CubeIDE)
 //
-// Timing (all times in microseconds):
-// - Bit time: 1000us (1ms) per bit
-// - Start pulse: 2000us (2ms) low
-// - ACK pulse: 1500us (1.5ms) low
-// - Timeout: 50000us (50ms) for any operation
+// Protocol:
+// 1. Detection: Presence pulses to detect peer
+// 2. Negotiation: Exchange UID bits to determine master/slave
+// 3. Connected: Master (higher UID) and Slave (lower UID) roles assigned
+// 4. Command Phase: Master sends commands, Slave responds
 //
+// Electrical principle:
+// - GPIO pin configured as input with pull-up (normally HIGH)
+// - When another device connects and drives the line LOW, we detect it
+// - Uses debouncing to avoid false positives from noise
+//
+
+// =====================================================
+// Command Protocol (for Connected state)
+// =====================================================
+// Master-initiated command/response protocol.
+// Master sends START pulse (5ms) followed by command byte.
+// Slave responds with response byte(s).
+//
+// Expandable command set - add new commands as needed.
+
+enum class TapCommand : uint8_t {
+    NONE = 0x00,           // No command / invalid
+    CHECK_READY = 0x01,    // Check if slave is ready
+    REQUEST_ID = 0x02,     // Request slave to send its device ID
+    SEND_ID = 0x03,        // Master sending its ID to slave
+    STORE_PEER_ID = 0x04,  // Tell slave to store received ID
+    // Add more commands as needed (0x05-0xFF available)
+};
+
+enum class TapResponse : uint8_t {
+    NONE = 0x00,           // No response / timeout
+    ACK = 0x06,            // Acknowledged / Ready
+    NAK = 0x15,            // Not acknowledged / Not ready
+    // Add more responses as needed
+};
 
 class TapLink {
 public:
-    enum class State {
-        Idle,           // Waiting for connection
-        Detecting,      // Detected connection, starting negotiation
-        Negotiating,    // Sending device ID for master/slave determination
-        MasterWaitAck,  // Master: waiting for slave ACK after sending ID
-        MasterDone,     // Master: exchange complete
-        SlaveReceive,   // Slave: receiving master's ID
-        SlaveSend,      // Slave: sending own ID
-        SlaveDone,      // Slave: exchange complete
-        Error           // Error state
+    enum class DetectionState {
+#ifdef EVAL_BOARD_TEST
+        NoConnection,   // Line is high (no other device connected)
+        Detecting,      // Line went low, debouncing
+        Negotiating,    // Exchanging UID bits to determine master/slave
+        Connected       // Connection confirmed, roles assigned
+#else
+        Sleeping,       // MCU asleep, waiting for tap wake-up
+        Waking,         // Just woken by tap, validating connection
+        Negotiating,    // Exchanging UID bits to determine master/slave
+        Connected,      // Valid connection confirmed
+        Disconnected    // Connection lost
+#endif
     };
 
-    TapLink(IOneWireHal* hal, Storage* storage);
-    
-    // Main state machine - call this in loop()
+    TapLink(IOneWireHal* hal);
+
+    // Main detection logic - call this in loop()
     void poll();
-    
-    // Get current state
-    State getState() const { return _state; }
-    
-    // Role information
+
+#ifdef EVAL_BOARD_TEST
+    // Send a presence pulse to signal we're here (call periodically)
+    void sendPresencePulse();
+#endif
+
+    // Get current detection state
+    DetectionState getState() const { return _state; }
+
+    // Role information (valid after negotiation complete)
     bool hasRole() const { return _roleKnown; }
     bool isMaster() const { return _isMaster; }
-    
-    // Check if a connection was just completed
-    bool isConnectionComplete() const;
-    
-    // Reset state machine (call after handling completed connection)
+
+#ifdef EVAL_BOARD_TEST
+    // Check if connection was just detected (call once per detection)
+    bool isConnectionDetected();
+
+    // Check if negotiation just completed
+    bool isNegotiationComplete();
+
+    // Reset detection state (after handling connection)
     void reset();
 
+    // === Command Protocol (for Connected state) ===
+    
+    // Master: Send a command and receive response
+    // Returns the response, or TapResponse::NONE on timeout/error
+    TapResponse masterSendCommand(TapCommand cmd);
+    
+    // Slave: Check for incoming command (non-blocking)
+    // Returns true if a START pulse is detected (command incoming)
+    bool slaveHasCommand();
+    
+    // Slave: Receive the command (blocking, call after slaveHasCommand() returns true)
+    // Returns the command, or TapCommand::NONE on timeout/error
+    TapCommand slaveReceiveCommand();
+    
+    // Slave: Send response to master
+    void slaveSendResponse(TapResponse response);
+    
+    // Check if peer is ready (set when master receives ACK from CHECK_READY)
+    bool isPeerReady() const { return _peerReady; }
+    
+    // Clear peer ready flag (e.g., when starting new exchange)
+    void clearPeerReady() { _peerReady = false; }
+#else
+    // Check if connection was just established
+    bool isConnectionEstablished();
+
+    // Check if connection was just lost
+    bool isConnectionLost();
+
+    // Configure for sleep mode (call before entering sleep)
+    void prepareForSleep();
+
+    // Handle wake-up from sleep (call after wake-up)
+    void handleWakeUp();
+
+    // Reset detection state
+    void reset();
+#endif
+
 private:
-    // Protocol timing constants (microseconds)
-    static constexpr uint32_t BIT_TIME_US = 1000;        // 1ms per bit
-    static constexpr uint32_t START_PULSE_US = 2000;     // 2ms start pulse
-    static constexpr uint32_t ACK_PULSE_US = 1500;       // 1.5ms ACK pulse
-    static constexpr uint32_t TIMEOUT_US = 50000;        // 50ms timeout
-    
-    // Connection detection
-    static constexpr uint32_t CONNECTION_DEBOUNCE_US = 5000;  // 5ms debounce
-    
-    // State machine handlers
-    void handleIdle();
-    void handleDetecting();
-    void handleNegotiating();
-    void handleMasterWaitAck();
-    void handleMasterDone();
-    void handleSlaveReceive();
-    void handleSlaveSend();
-    void handleSlaveDone();
-    
-    // Low-level protocol functions
-    bool sendByte(uint8_t byte);
-    bool receiveByte(uint8_t& byte);
-    bool sendStartPulse();
-    bool waitForStartPulse();
-    bool sendAck();
-    bool waitForAck();
-    bool sendBit(bool bit);
-    bool receiveBit(bool& bit);
-    
+#ifdef EVAL_BOARD_TEST
+    // Detection timing constants (microseconds)
+    static constexpr uint32_t DEBOUNCE_TIME_US = 5000;   // 5ms debounce
+    static constexpr uint32_t PRESENCE_PULSE_US = 2000;  // 2ms presence pulse
+    static constexpr uint32_t PULSE_INTERVAL_US = 50000; // 50ms between pulses
+
+    // Negotiation timing constants (microseconds)
+    // CRITICAL: Drive period must be MUCH longer than any sync error
+    // to ensure both boards are driving when sampling occurs
+    static constexpr uint32_t BIT_DRIVE_US = 5000;       // 5ms drive period (long for overlap)
+    static constexpr uint32_t BIT_SAMPLE_US = 2500;      // Sample at 2.5ms (middle of drive)
+    static constexpr uint32_t BIT_RECOVERY_US = 2000;    // 2ms recovery between bits
+    static constexpr uint32_t SYNC_PULSE_US = 10000;     // 10ms sync pulse
+    static constexpr uint32_t SYNC_WAIT_US = 5000;       // 5ms wait after sync
+    static constexpr uint32_t NEGOTIATION_BITS = 32;     // First 32 bits of UID for negotiation
+
+    // Command protocol timing constants (microseconds)
+    static constexpr uint32_t CMD_START_PULSE_US = 5000;   // 5ms START pulse (longer than presence)
+    static constexpr uint32_t CMD_TURNAROUND_US = 2000;    // 2ms turnaround between send/receive
+    static constexpr uint32_t CMD_TIMEOUT_US = 100000;     // 100ms command timeout
+    static constexpr uint32_t CMD_BIT_DRIVE_US = 5000;     // 5ms bit drive (same as negotiation)
+    static constexpr uint32_t CMD_BIT_SAMPLE_US = 2500;    // Sample at 2.5ms
+    static constexpr uint32_t CMD_BIT_RECOVERY_US = 2000;  // 2ms recovery between bits
+    static constexpr uint8_t MAX_COMMAND_FAILURES = 3;     // Disconnect after 3 failed commands
+#else
+    // Detection timing constants (microseconds)
+    static constexpr uint32_t VALIDATION_TIME_US = 10000;  // 10ms validation after wake-up
+    static constexpr uint32_t DISCONNECT_DEBOUNCE_US = 2000; // 2ms debounce for disconnect
+#endif
+
     // Helper functions
-    int compareDeviceIds(const uint8_t id1[DEVICE_UID_LEN], 
-                         const uint8_t id2[DEVICE_UID_LEN]);
-    bool waitForLine(bool expectedState, uint32_t timeoutUs);
     uint32_t elapsedMicros(uint32_t startTime);
+#ifdef EVAL_BOARD_TEST
+    void startNegotiation();
+    void pollNegotiation();
+    bool sendBit(bool bit);
+    bool readBit();
     
+    // Command protocol helpers
+    void sendByte(uint8_t byte);
+    bool receiveByte(uint8_t* byte, uint32_t timeoutUs);
+    void sendStartPulse();
+    bool waitForLineHigh(uint32_t timeoutUs);
+#else
+    bool validateConnection();  // Check if tap connection is stable
+#endif
+
     IOneWireHal* _hal;
-    Storage* _storage;
-    
-    State _state;
+
+    DetectionState _state;
     uint32_t _stateStartTime;
-    uint32_t _lastLineChangeTime;
-    bool _lastLineState;
-    
-    // Negotiation state
+
+    // Role negotiation
     uint8_t _selfId[DEVICE_UID_LEN];
-    uint8_t _peerId[DEVICE_UID_LEN];
-    uint8_t _negotiationBitIndex;
     bool _roleKnown;
     bool _isMaster;
+
+#ifdef EVAL_BOARD_TEST
+    uint32_t _lastLineChangeTime;
+    bool _lastLineState;
+    bool _connectionJustDetected;
+    bool _negotiationJustCompleted;
+    uint32_t _lastPulseTime;       // When we last sent a presence pulse
+    bool _isPulsing;               // Are we currently sending a pulse?
+    uint32_t _pulseStartTime;      // When current pulse started
+
+    // Negotiation state
+    uint8_t _negotiationBitIndex;
+    uint32_t _bitSlotStartTime;
+    bool _waitingForSync;
+    bool _syncSent;
+    uint32_t _randomSeed;          // For tie-breaker
     
-    // Reception state
-    uint8_t _rxBuffer[DEVICE_UID_LEN];
-    uint8_t _rxByteIndex;
-    uint8_t _rxBitIndex;
-    
-    // Transmission state
-    uint8_t _txBuffer[DEVICE_UID_LEN];
-    uint8_t _txByteIndex;
-    uint8_t _txBitIndex;
-    
-    bool _connectionComplete;
+    // Command protocol state
+    bool _peerReady;               // True when peer responded ACK to CHECK_READY
+    uint32_t _lastCommandTime;     // For command rate limiting
+    uint8_t _commandFailures;      // Count of consecutive command failures
+#else
+    uint32_t _lastWakeTime;
+    bool _connectionJustEstablished;
+    bool _connectionJustLost;
+    bool _wasConnected;
+#endif
 };

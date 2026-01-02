@@ -24,9 +24,13 @@
  static constexpr StatusDisplay::BlinkStep PATTERN_SUCCESS_STEPS[] = {
      {500, true}, {500, false}
  };
- static constexpr StatusDisplay::BlinkStep PATTERN_ERROR_STEPS[] = {
-     {80, true}, {80, false}, {80, true}, {80, false}, {80, true}, {500, false}
- };
+static constexpr StatusDisplay::BlinkStep PATTERN_ERROR_STEPS[] = {
+    {80, true}, {80, false}, {80, true}, {80, false}, {80, true}, {500, false}
+};
+// PeerReady pattern - double blink to indicate peer is ready
+static constexpr StatusDisplay::BlinkStep PATTERN_PEER_READY_STEPS[] = {
+    {150, true}, {100, false}, {150, true}, {600, false}
+};
  
  // Role patterns (LED 1)
  static constexpr StatusDisplay::BlinkStep PATTERN_ROLE_UNKNOWN_STEPS[] = {
@@ -103,43 +107,52 @@
      }
  }
  
- const StatusDisplay::LedPattern& StatusDisplay::patternFor(ReadyPattern pattern) {
-     static const LedPattern BOOT     = {PATTERN_BOOT_STEPS,     sizeof(PATTERN_BOOT_STEPS) / sizeof(BlinkStep),     false, false};
-     static const LedPattern IDLE     = {PATTERN_IDLE_STEPS,     sizeof(PATTERN_IDLE_STEPS) / sizeof(BlinkStep),     false, false};
-     static const LedPattern DETECT   = {PATTERN_DETECT_STEPS,   sizeof(PATTERN_DETECT_STEPS) / sizeof(BlinkStep),   false, false};
-     static const LedPattern NEGOTIATE= {PATTERN_NEGOTIATE_STEPS,sizeof(PATTERN_NEGOTIATE_STEPS)/ sizeof(BlinkStep), false, false};
-     static const LedPattern WAIT_ACK = {PATTERN_WAIT_ACK_STEPS, sizeof(PATTERN_WAIT_ACK_STEPS)/ sizeof(BlinkStep), false, false};
-     static const LedPattern EXCHANGE = {PATTERN_EXCHANGE_STEPS, sizeof(PATTERN_EXCHANGE_STEPS)/ sizeof(BlinkStep), false, false};
-     static const LedPattern SUCCESS  = {PATTERN_SUCCESS_STEPS,  sizeof(PATTERN_SUCCESS_STEPS)/ sizeof(BlinkStep),  false, false};
-     static const LedPattern ERROR    = {PATTERN_ERROR_STEPS,    sizeof(PATTERN_ERROR_STEPS)/ sizeof(BlinkStep),    false, false};
+const StatusDisplay::LedPattern& StatusDisplay::patternFor(ReadyPattern pattern) {
+   static const LedPattern BOOT       = {PATTERN_BOOT_STEPS,       sizeof(PATTERN_BOOT_STEPS) / sizeof(BlinkStep),       false, false};
+   static const LedPattern IDLE       = {PATTERN_IDLE_STEPS,       sizeof(PATTERN_IDLE_STEPS) / sizeof(BlinkStep),       false, false};
+   static const LedPattern DETECT     = {PATTERN_DETECT_STEPS,     sizeof(PATTERN_DETECT_STEPS) / sizeof(BlinkStep),     false, false};
+   static const LedPattern NEGOTIATE  = {PATTERN_NEGOTIATE_STEPS,  sizeof(PATTERN_NEGOTIATE_STEPS)/ sizeof(BlinkStep),   false, false};
+   static const LedPattern WAIT_ACK   = {PATTERN_WAIT_ACK_STEPS,   sizeof(PATTERN_WAIT_ACK_STEPS)/ sizeof(BlinkStep),    false, false};
+   static const LedPattern EXCHANGE   = {PATTERN_EXCHANGE_STEPS,   sizeof(PATTERN_EXCHANGE_STEPS)/ sizeof(BlinkStep),    false, false};
+   static const LedPattern SUCCESS    = {nullptr, 0, true, true};   // steady ON when connected
+   static const LedPattern PEER_READY = {PATTERN_PEER_READY_STEPS, sizeof(PATTERN_PEER_READY_STEPS)/ sizeof(BlinkStep),  false, false};
+   static const LedPattern ERROR      = {PATTERN_ERROR_STEPS,      sizeof(PATTERN_ERROR_STEPS)/ sizeof(BlinkStep),       false, false};
+
+    switch (pattern) {
+        case ReadyPattern::Booting:      return BOOT;
+        case ReadyPattern::Detecting:    return DETECT;
+        case ReadyPattern::Negotiating:  return NEGOTIATE;
+        case ReadyPattern::WaitingAck:   return WAIT_ACK;
+        case ReadyPattern::Exchanging:   return EXCHANGE;
+        case ReadyPattern::Success:      return SUCCESS;
+        case ReadyPattern::PeerReady:    return PEER_READY;
+        case ReadyPattern::Error:        return ERROR;
+        case ReadyPattern::Idle:
+        default:
+            return IDLE;
+    }
+}
  
-     switch (pattern) {
-         case ReadyPattern::Booting:      return BOOT;
-         case ReadyPattern::Detecting:    return DETECT;
-         case ReadyPattern::Negotiating:  return NEGOTIATE;
-         case ReadyPattern::WaitingAck:   return WAIT_ACK;
-         case ReadyPattern::Exchanging:   return EXCHANGE;
-         case ReadyPattern::Success:      return SUCCESS;
-         case ReadyPattern::Error:        return ERROR;
-         case ReadyPattern::Idle:
-         default:
-             return IDLE;
-     }
- }
- 
- const StatusDisplay::LedPattern& StatusDisplay::patternFor(RolePattern pattern) {
-     static const LedPattern UNKNOWN = {PATTERN_ROLE_UNKNOWN_STEPS, sizeof(PATTERN_ROLE_UNKNOWN_STEPS) / sizeof(BlinkStep), false, false};
-     static const LedPattern MASTER  = {nullptr, 0, true, true};   // steady on
-     static const LedPattern SLAVE   = {nullptr, 0, true, false};  // steady off
- 
-     switch (pattern) {
-         case RolePattern::Master:  return MASTER;
-         case RolePattern::Slave:   return SLAVE;
-         case RolePattern::Unknown:
-         default:
-             return UNKNOWN;
-     }
- }
+// Slave role blink pattern - slow blink to distinguish from master (steady on)
+static constexpr StatusDisplay::BlinkStep PATTERN_ROLE_SLAVE_STEPS[] = {
+    {200, true}, {800, false}  // Short on, long off
+};
+
+const StatusDisplay::LedPattern& StatusDisplay::patternFor(RolePattern pattern) {
+    static const LedPattern NONE    = {nullptr, 0, true, false};  // steady off (not connected)
+    static const LedPattern UNKNOWN = {PATTERN_ROLE_UNKNOWN_STEPS, sizeof(PATTERN_ROLE_UNKNOWN_STEPS) / sizeof(BlinkStep), false, false};
+    static const LedPattern MASTER  = {nullptr, 0, true, true};   // steady on
+    static const LedPattern SLAVE   = {PATTERN_ROLE_SLAVE_STEPS, sizeof(PATTERN_ROLE_SLAVE_STEPS) / sizeof(BlinkStep), false, false};  // blinking
+
+    switch (pattern) {
+        case RolePattern::None:    return NONE;
+        case RolePattern::Master:  return MASTER;
+        case RolePattern::Slave:   return SLAVE;
+        case RolePattern::Unknown:
+        default:
+            return UNKNOWN;
+    }
+}
  
  void StatusDisplay::applyPattern(size_t ledIndex, const LedPattern& pattern) {
      if (ledIndex >= _ledCount) {

@@ -25,11 +25,13 @@
 // Build Metadata
 // ============================
 
-// Auto-insert build date/time (gcc predefined macros)
-#define FW_BUILD_DATE __DATE__
-#define FW_BUILD_TIME __TIME__
+// Build datetime injected by extra_script.py (ISO 8601 UTC format)
+// Format: "2026-01-02T15:30:45Z"
+#ifndef FW_BUILD_DATETIME
+#define FW_BUILD_DATETIME "unknown"
+#endif
 
-// Optional git hash (you can have PlatformIO inject this later)
+// Git hash injected by extra_script.py
 #ifndef FW_BUILD_HASH
 #define FW_BUILD_HASH "dev"
 #endif
