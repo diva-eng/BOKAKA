@@ -11,8 +11,8 @@ This document identifies refactoring opportunities to improve testability, test 
 | ✅ Done | `main.cpp` | Arduino.h dependency + hardcoded pins | Completed |
 | ✅ Done | `device_id.cpp` | Direct HAL dependency not abstracted | Completed |
 | ✅ Done | `usb_serial.cpp` | Tight coupling to Storage | Completed (uses IStorage) |
+| ✅ Done | `main.cpp` | Global state, tight coupling | Completed (Application class) |
 | 🟡 Medium | `tap_link.cpp` | `#ifdef EVAL_BOARD_TEST` duplication | Pending |
-| 🟡 Medium | `main.cpp` | Global state, tight coupling | Pending |
 
 ---
 
@@ -33,6 +33,13 @@ This document identifies refactoring opportunities to improve testability, test 
 - `Storage` class implements `IStorage`
 - `UsbCommandHandler` now accepts `IStorage&` (not `Storage&`)
 - `MockStorage` class for unit testing in `test/mock_storage.h`
+
+### ✅ 4. Application Class (`application.h`)
+- All business logic extracted from `main.cpp` into `Application` class
+- `main.cpp` now just 18 lines (setup/loop delegate to Application)
+- Components (Storage, TapLink, StatusDisplay) are class members, not globals
+- Master/slave command handling in separate methods for clarity
+- Battery mode handling isolated in `handleBatteryMode()`
 
 ---
 
