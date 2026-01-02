@@ -22,7 +22,7 @@ constexpr size_t STORAGE_EEPROM_BASE = 0;
 // - Critical operations like setSecretKey() write immediately (rare, critical data)
 // - Regular operations like addLink() are batched with 30s delay
 //
-constexpr uint32_t STORAGE_DELAYED_WRITE_MS = 30000;  // Batch changes to reduce flash wear
+constexpr uint32_t STORAGE_DELAYED_WRITE_MS = 2000;  // Batch changes to reduce flash wear
 
 
 // =====================================================

@@ -9,13 +9,13 @@
 
 ### Write Cycle Limit
 - **Endurance**: ~10,000 erase/write cycles per page
-- **Current implementation**: 30-second delayed write batching
+- **Current implementation**: 2-second delayed write batching
 - **Write strategy**: Each full write consumes one cycle regardless of data changes
 
 ### Lifetime Calculations
 
 #### Scenario 1: Worst Case (No Batching)
-- All 100 taps spread >30 seconds apart
+- All 100 taps spread >2 seconds apart
 - **Writes per event**: 100
 - **Writes per year** (10 events): 1,000
 - **Estimated lifetime**: **10 years**
@@ -23,14 +23,15 @@
 
 #### Scenario 2: Realistic Case (Partial Batching)
 - Taps come in bursts during events
-- Some batching occurs (multiple taps within 30s windows)
-- **Writes per event**: ~25
-- **Writes per year** (10 events): 250
-- **Estimated lifetime**: **40 years**
-- ✅ **Assessment**: Acceptable for many use cases
+- Some batching occurs (multiple taps within 2s windows)
+- Average 2-3 taps batched together
+- **Writes per event**: ~40-50
+- **Writes per year** (10 events): 400-500
+- **Estimated lifetime**: **20-25 years**
+- ✅ **Assessment**: Acceptable for most use cases
 
 #### Scenario 3: Best Case (Maximum Batching)
-- All 100 taps happen within 30-second windows
+- All 100 taps happen within 2-second windows
 - **Writes per event**: 1-2
 - **Writes per year** (10 events): 10-20
 - **Estimated lifetime**: **500-1000 years**
@@ -71,16 +72,16 @@ For **production devices** with long-term reliability requirements, **external S
 ### Estimated Lifetime with External Flash
 
 - **Endurance**: 100,000+ cycles
-- **Writes per event** (realistic): 25
-- **Writes per year** (10 events): 250
-- **Estimated lifetime**: **400+ years**
+- **Writes per event** (realistic): 40-50
+- **Writes per year** (10 events): 400-500
+- **Estimated lifetime**: **200+ years**
 - ✅ **Assessment**: Excellent for production use
 
 ## Recommendations
 
 ### For Prototyping/Evaluation
-✅ **Internal flash is acceptable** with current 30s batching:
-- Realistic estimate: ~40 years at 10 events/year
+✅ **Internal flash is acceptable** with current 2s batching:
+- Realistic estimate: ~20-25 years at 10 events/year
 - Sufficient for testing and early deployments
 - Monitor actual write patterns in field
 
@@ -113,8 +114,8 @@ If switching to external flash:
 ## Conclusion
 
 For your usage pattern (<100 links/event, multiple events/year):
-- **Internal flash**: ~40 years (realistic) - acceptable for many use cases
-- **External flash**: 400+ years - recommended for production reliability
+- **Internal flash**: ~20-25 years (realistic with 2s batching) - acceptable for many use cases
+- **External flash**: 200+ years - recommended for production reliability
 
 The choice depends on your reliability requirements, expected device lifetime, and cost constraints.
 
