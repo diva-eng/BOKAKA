@@ -1,4 +1,4 @@
-#include <Arduino.h>
+#include "board_config.h"
 #include "storage.h"
 #include "usb_serial.h"
 #include "tap_link.h"
@@ -11,7 +11,7 @@ UsbCommandHandler gUsb;
 TapLink* gTapLink = nullptr;
 StatusDisplay gStatusDisplay;
 
-static const uint32_t STATUS_LED_PINS[] = { PA5, STATUS_LED1_PIN };
+static const uint32_t STATUS_LED_PINS[] = { STATUS_LED0_PIN, STATUS_LED1_PIN };
 static uint32_t g_connectionDetectedTime = 0;
 static uint32_t g_lastCommandTime = 0;
 static const uint32_t COMMAND_INTERVAL_MS = 500;  // Send CHECK_READY every 500ms

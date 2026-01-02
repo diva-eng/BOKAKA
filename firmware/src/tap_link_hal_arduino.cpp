@@ -1,16 +1,13 @@
 #include "tap_link_hal.h"
+#include "board_config.h"
 #include "platform_timing.h"
 #include "platform_gpio.h"
-#include <Arduino.h>  // Needed for PA9 pin definition
 
 // Arduino implementation for 1-wire tap link interface
 // Configure the GPIO pin for the 1-wire interface
 // Default: PA9 (D8 on NUCLEO-L053R8, digital header CN5)
 // This pin is on the digital header for easy access and supports open-drain mode
-
-#ifndef TAP_LINK_PIN
-#define TAP_LINK_PIN PA9
-#endif
+// Pin is defined in board_config.h (TAP_LINK_PIN)
 
 class OneWireHalArduino : public IOneWireHal {
 private:

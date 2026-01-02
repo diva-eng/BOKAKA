@@ -133,6 +133,8 @@ The firmware uses EEPROM emulation on STM32 flash memory. **Flash wear is a crit
 | Document | Description |
 |----------|-------------|
 | [PLATFORM_ABSTRACTION.md](PLATFORM_ABSTRACTION.md) | Platform abstraction layer design and migration guide |
+| [MIGRATION_PLAN.md](MIGRATION_PLAN.md) | Step-by-step STM32CubeIDE migration plan |
+| [docs/REFACTORING_GUIDE.md](docs/REFACTORING_GUIDE.md) | Code refactoring opportunities for testability |
 | [docs/TAP_LINK_TIMING.md](docs/TAP_LINK_TIMING.md) | Tap link protocol timing diagrams |
 | [docs/TAP_INTERFACE_WIRING.md](docs/TAP_INTERFACE_WIRING.md) | Hardware wiring guide for two-board testing |
 | [docs/STATUS_DISPLAY.md](docs/STATUS_DISPLAY.md) | LED status patterns and configuration |
