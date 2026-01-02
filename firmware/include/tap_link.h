@@ -156,6 +156,7 @@ private:
     static constexpr uint32_t CMD_BIT_SAMPLE_US = 2500;    // Sample at 2.5ms
     static constexpr uint32_t CMD_BIT_RECOVERY_US = 2000;  // 2ms recovery between bits
     static constexpr uint8_t MAX_COMMAND_FAILURES = 3;     // Disconnect after 3 failed commands
+    static constexpr uint32_t SLAVE_IDLE_TIMEOUT_US = 2000000;  // 2 seconds - slave disconnects if no command
 #else
     // Detection timing constants (microseconds)
     static constexpr uint32_t VALIDATION_TIME_US = 10000;  // 10ms validation after wake-up
@@ -207,8 +208,8 @@ private:
     
     // Command protocol state
     bool _peerReady;               // True when peer responded ACK to CHECK_READY
-    uint32_t _lastCommandTime;     // For command rate limiting
-    uint8_t _commandFailures;      // Count of consecutive command failures
+    uint32_t _lastCommandTime;     // For master: command rate limiting; for slave: last command received
+    uint8_t _commandFailures;      // Count of consecutive command failures (master only)
 #else
     uint32_t _lastWakeTime;
     bool _connectionJustEstablished;

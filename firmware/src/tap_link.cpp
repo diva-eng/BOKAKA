@@ -122,9 +122,18 @@ void TapLink::poll() {
             // Master sends CHECK_READY commands periodically.
             // Slave listens for commands and responds.
             // Disconnect is detected via command timeout, not presence pulses.
-            //
-            // poll() does nothing special here - command handling is done in main.cpp
-            // via masterSendCommand() and slaveReceiveCommand().
+            
+            // Slave: Check for idle timeout (no commands received)
+            if (_roleKnown && !_isMaster) {
+                uint32_t sinceLastCommand = elapsedMicros(_lastCommandTime);
+                if (sinceLastCommand > SLAVE_IDLE_TIMEOUT_US) {
+                    // No commands for too long - master disconnected
+                    _state = DetectionState::NoConnection;
+                    _roleKnown = false;
+                    _peerReady = false;
+                    _lastPulseTime = now;  // Reset pulse timer for detection phase
+                }
+            }
             break;
     }
 #else
@@ -358,7 +367,9 @@ void TapLink::pollNegotiation() {
 
     _state = DetectionState::Connected;
     _negotiationJustCompleted = true;
-    _lastPulseTime = _hal->micros();  // Reset pulse timer
+    _lastPulseTime = _hal->micros();   // Reset pulse timer
+    _lastCommandTime = _hal->micros(); // Initialize command timer (for slave idle timeout)
+    _commandFailures = 0;              // Reset failure counter
 }
 
 bool TapLink::sendBit(bool bit) {
@@ -499,7 +510,23 @@ TapResponse TapLink::masterSendCommand(TapCommand cmd) {
         return TapResponse::NONE;
     }
     
-    // Successful response - reset failure counter
+    // Validate response is a known code (not 0xFF from floating line)
+    // When wire is disconnected, pull-up makes line HIGH, so we read 0xFF
+    bool validResponse = (response == static_cast<uint8_t>(TapResponse::ACK) ||
+                          response == static_cast<uint8_t>(TapResponse::NAK));
+    
+    if (!validResponse) {
+        // Invalid response (likely 0xFF from disconnected wire)
+        _commandFailures++;
+        if (_commandFailures >= MAX_COMMAND_FAILURES) {
+            _state = DetectionState::NoConnection;
+            _roleKnown = false;
+            _peerReady = false;
+        }
+        return TapResponse::NONE;
+    }
+    
+    // Successful valid response - reset failure counter
     _commandFailures = 0;
     
     // Update peer ready state for CHECK_READY
@@ -549,6 +576,9 @@ TapCommand TapLink::slaveReceiveCommand() {
     if (!receiveByte(&cmd, CMD_TIMEOUT_US)) {
         return TapCommand::NONE;
     }
+    
+    // Valid command received - update last command time for idle timeout
+    _lastCommandTime = _hal->micros();
     
     return static_cast<TapCommand>(cmd);
 }

@@ -274,8 +274,11 @@ After negotiation completes:
     │   Slave:  Listens for commands and responds                      │
     │                                                                  │
     │   Disconnect detection:                                          │
-    │   - Master: 3 consecutive command failures → disconnected        │
-    │   - Slave:  No commands received for timeout → disconnected      │
+    │   - Master: 3 consecutive command failures → NoConnection        │
+    │   - Slave:  No commands received for 2 seconds → NoConnection    │
+    │                                                                  │
+    │   Both return to Idle state (LED0 slow blink) and wait for       │
+    │   new connection via presence pulses.                            │
     │                                                                  │
     └──────────────────────────────────────────────────────────────────┘
 ```
@@ -420,6 +423,8 @@ Each bit slot:
 | `CMD_BIT_DRIVE_US` | 5ms | Bit drive period |
 | `CMD_BIT_SAMPLE_US` | 2.5ms | Bit sample point |
 | `CMD_BIT_RECOVERY_US` | 2ms | Recovery between bits |
+| `MAX_COMMAND_FAILURES` | 3 | Master disconnects after N failures |
+| `SLAVE_IDLE_TIMEOUT_US` | 2s | Slave disconnects if no commands |
 
 ### Distinguishing Commands from Presence Pulses
 
