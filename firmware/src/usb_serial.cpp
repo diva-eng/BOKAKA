@@ -48,24 +48,16 @@ void UsbCommandHandler::begin(unsigned long baud)
 {
     platform_serial_begin(baud);
     
-    // On STM32 USB Serial (CDC), we need to wait for the USB connection to be fully established
-    // and flush any initialization noise from the buffer. This prevents the first command
-    // from being lost or corrupted.
-    
-    // Wait for USB Serial to be ready (STM32 CDC needs time to enumerate)
-    // Give it time to establish the USB connection
+    // Wait for USB CDC to enumerate
     platform_delay_ms(500);
     
-    // Flush any initialization noise or leftover data from the input buffer
-    // This is critical - without this, the first command can be corrupted or lost
-    // Some STM32 USB CDC implementations may have initialization data or noise
+    // Flush any stale data from input buffer
     uint32_t flushStart = platform_millis();
     while (platform_serial_available() > 0 && (platform_millis() - flushStart < 100)) {
         platform_serial_read();
-        platform_delay_ms(1);  // Small delay to allow buffer to refill if needed
+        platform_delay_ms(1);
     }
     
-    // Additional delay to ensure USB CDC is fully ready after flushing
     platform_delay_ms(100);
     
     // Reset command buffer state
@@ -80,7 +72,6 @@ void UsbCommandHandler::poll(IStorage &storage)
         int c = platform_serial_read();
         if (c < 0) break;  // No data available
 
-        // Support \r\n / \n as line endings
         if (c == '\r')
             continue;
 
@@ -110,20 +101,12 @@ void UsbCommandHandler::poll(IStorage &storage)
 
 void UsbCommandHandler::handleLine(IStorage &storage, const char *line)
 {
-    // Simple split by spaces to recognize commands
-    // Support (case-insensitive):
-    //  HELLO
-    //  GET_STATE
-    //  CLEAR
-    //  DUMP <offset> <count>
-
     // Skip leading whitespace
     while (*line == ' ' || *line == '\t')
         line++;
     if (*line == '\0')
         return;
 
-    // For simplicity, copy into a modifiable buffer
     char tmp[CMD_BUF_SIZE];
     strncpy(tmp, line, CMD_BUF_SIZE - 1);
     tmp[CMD_BUF_SIZE - 1] = '\0';
@@ -417,8 +400,6 @@ void UsbCommandHandler::cmdSignState(IStorage& storage, const char* nonceHex) {
     bytesToHex(hmac, 32, hmacHex);
 
     char devHex[DEVICE_UID_HEX_LEN + 1];
-    // Note: here we use the snapshot's selfId for hex conversion or directly use hardware UID — both sides must agree
-    // For simplicity, use selfId:
     bytesToHex(st.selfId, DEVICE_UID_LEN, devHex);
 
     platform_serial_print("{\"event\":\"SIGNED_STATE\"");

@@ -14,8 +14,7 @@ void platform_gpio_pin_mode(uint32_t pin, platform_gpio_mode_t mode) {
             pinMode(pin, OUTPUT);
             break;
         case PLATFORM_GPIO_MODE_OUTPUT_OD:
-            // Arduino doesn't have direct open-drain mode, use OUTPUT
-            // The actual open-drain behavior depends on hardware
+            // Open-drain emulated via OUTPUT mode
             pinMode(pin, OUTPUT);
             break;
     }

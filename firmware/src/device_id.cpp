@@ -6,7 +6,6 @@ static char hexDigit(uint8_t v) {
 }
 
 void getDeviceUidRaw(uint8_t out[DEVICE_UID_LEN]) {
-    // Delegate to platform abstraction
     platform_get_device_uid(out);
 }
 

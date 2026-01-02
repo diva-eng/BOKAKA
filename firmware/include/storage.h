@@ -22,13 +22,7 @@ constexpr size_t STORAGE_EEPROM_BASE = 0;
 // - Critical operations like setSecretKey() write immediately (rare, critical data)
 // - Regular operations like addLink() are batched with 30s delay
 //
-// Lifetime estimates for typical usage (<100 links/event, multiple events/year):
-// - Worst case (100 writes/event, all spread out): ~10 years at 10 events/year
-// - Realistic (25 writes/event with batching): ~40 years at 10 events/year  
-// - Best case (all taps batched): 1000+ years (not realistic for events)
-// NOTE: These are theoretical limits. For production use, consider external flash
-//       (100,000+ cycles) with encryption for better reliability and longevity.
-constexpr uint32_t STORAGE_DELAYED_WRITE_MS = 30000;  // 30 seconds - batch changes to reduce flash wear
+constexpr uint32_t STORAGE_DELAYED_WRITE_MS = 30000;  // Batch changes to reduce flash wear
 
 
 // =====================================================

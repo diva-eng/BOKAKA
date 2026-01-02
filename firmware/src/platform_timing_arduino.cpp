@@ -3,8 +3,7 @@
 #include <Arduino.h>
 
 void platform_timing_init() {
-    // Arduino timing is automatically initialized
-    // No explicit initialization needed
+    // No-op for Arduino
 }
 
 uint32_t platform_millis() {

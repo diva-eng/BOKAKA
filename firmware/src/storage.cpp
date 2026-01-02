@@ -31,8 +31,7 @@ bool Storage::begin() {
 
         writeToNvm();
         } else {
-        // Data successfully read from NVM
-        // If the old data's selfId is still uninitialized (all zeros), fill it in once
+        // If selfId is uninitialized (all zeros), fill it in
         if (isUidAllZero(_image.payload.selfId)) {
             getDeviceUidRaw(_image.payload.selfId);
             markDirty();
@@ -57,8 +56,6 @@ void Storage::loop() {
     if (!_dirty) return;
 
     uint32_t now = platform_millis();
-    // Use delayed write to batch multiple changes and reduce flash write cycles
-    // This significantly extends flash memory lifetime by reducing write frequency
     if (now - _lastSaveMs >= STORAGE_DELAYED_WRITE_MS) {
         saveNow();
     }
@@ -90,9 +87,6 @@ void Storage::clearAll() {
     memcpy(_image.payload.selfId, selfId, DEVICE_UID_LEN);
 
     markDirty();
-    // Clear is a user command that should be persisted immediately
-    // This ensures the clear operation is not lost if power is lost
-    // However, this does consume one flash write cycle
     saveNow();
 }
 
@@ -100,24 +94,22 @@ void Storage::clearAll() {
 bool Storage::hasLink(const uint8_t peerId[DEVICE_UID_LEN]) const {
     const PersistPayloadV1& p = _image.payload;
     
-    // Check all stored links for a match
     uint16_t count = p.linkCount;
     if (count > PersistPayloadV1::MAX_LINKS) {
-        count = PersistPayloadV1::MAX_LINKS;  // Cap at max if wrapped
+        count = PersistPayloadV1::MAX_LINKS;
     }
     
     for (uint16_t i = 0; i < count; i++) {
         if (memcmp(p.links[i].peerId, peerId, DEVICE_UID_LEN) == 0) {
-            return true;  // Found duplicate
+            return true;
         }
     }
     return false;
 }
 
 bool Storage::addLink(const uint8_t peerId[DEVICE_UID_LEN]) {
-    // Check if this peer already exists - don't add duplicates
     if (hasLink(peerId)) {
-        return false;  // Already exists, tap count is handled separately
+        return false;
     }
     
     PersistPayloadV1& p = _image.payload;
@@ -125,20 +117,17 @@ bool Storage::addLink(const uint8_t peerId[DEVICE_UID_LEN]) {
     uint16_t idx = p.linkCount;
     if (idx >= PersistPayloadV1::MAX_LINKS) {
         idx = idx % PersistPayloadV1::MAX_LINKS;
-        _linkCountChanged = false;  // Wrapping around, count doesn't change
+        _linkCountChanged = false;
     } else {
         p.linkCount++;
-        _linkCountChanged = true;   // Count was incremented
+        _linkCountChanged = true;
     }
 
     memcpy(p.links[idx].peerId, peerId, DEVICE_UID_LEN);
-    _lastLinkIndex = idx;  // Track which link was modified
-    
-    // Note: totalTapCount is now incremented separately via incrementTapCount()
-    // to allow independent optimized saves
+    _lastLinkIndex = idx;
 
     markDirty();
-    return true;  // New link added
+    return true;
 }
 
 void Storage::incrementTapCount() {
@@ -147,32 +136,22 @@ void Storage::incrementTapCount() {
 }
 
 void Storage::saveTapCountOnly() {
-    // OPTIMIZED SAVE: Only writes 8 bytes instead of 896 bytes
-    // This is ~100x faster (~40-80ms vs 6-7 seconds)
-    //
-    // We write:
-    // 1. totalTapCount (4 bytes) - the changed data
-    // 2. crc32 (4 bytes) - recalculated over full payload
-    
-    // Recalculate CRC over the full payload (we have it in memory)
+    // Recalculate CRC
     _image.header.crc32 = calcCrc32(
         reinterpret_cast<uint8_t*>(&_image.payload),
         sizeof(PersistPayloadV1)
     );
     
-    // Calculate offsets using offsetof for safety
     constexpr size_t tapCountOffset = offsetof(PersistImageV1, payload) + 
                                       offsetof(PersistPayloadV1, totalTapCount);
     constexpr size_t crcOffset = offsetof(PersistImageV1, header) + 
                                  offsetof(PersistHeader, crc32);
     
-    // Write totalTapCount (4 bytes)
     uint8_t* tapCountPtr = reinterpret_cast<uint8_t*>(&_image.payload.totalTapCount);
     for (size_t i = 0; i < sizeof(uint32_t); i++) {
         platform_storage_write(STORAGE_EEPROM_BASE + tapCountOffset + i, tapCountPtr[i]);
     }
     
-    // Write crc32 (4 bytes)
     uint8_t* crcPtr = reinterpret_cast<uint8_t*>(&_image.header.crc32);
     for (size_t i = 0; i < sizeof(uint32_t); i++) {
         platform_storage_write(STORAGE_EEPROM_BASE + crcOffset + i, crcPtr[i]);
@@ -185,21 +164,12 @@ void Storage::saveTapCountOnly() {
 }
 
 void Storage::saveLinkOnly() {
-    // OPTIMIZED SAVE: Only writes ~18 bytes instead of 896 bytes
-    // This is ~50x faster (~90-180ms vs 6-7 seconds)
-    //
-    // We write:
-    // 1. linkCount (2 bytes) - if it changed
-    // 2. links[_lastLinkIndex] (12 bytes) - the new link
-    // 3. crc32 (4 bytes) - recalculated over full payload
-    
-    // Recalculate CRC over the full payload (we have it in memory)
+    // Recalculate CRC
     _image.header.crc32 = calcCrc32(
         reinterpret_cast<uint8_t*>(&_image.payload),
         sizeof(PersistPayloadV1)
     );
     
-    // Calculate offsets
     constexpr size_t linkCountOffset = offsetof(PersistImageV1, payload) + 
                                        offsetof(PersistPayloadV1, linkCount);
     constexpr size_t linksArrayOffset = offsetof(PersistImageV1, payload) + 
@@ -207,10 +177,8 @@ void Storage::saveLinkOnly() {
     constexpr size_t crcOffset = offsetof(PersistImageV1, header) + 
                                  offsetof(PersistHeader, crc32);
     
-    // Calculate offset of the specific link entry
     size_t linkEntryOffset = linksArrayOffset + (_lastLinkIndex * sizeof(LinkRecordV1));
     
-    // Write linkCount (2 bytes) - only if it changed
     if (_linkCountChanged) {
         uint8_t* linkCountPtr = reinterpret_cast<uint8_t*>(&_image.payload.linkCount);
         for (size_t i = 0; i < sizeof(uint16_t); i++) {
@@ -218,13 +186,11 @@ void Storage::saveLinkOnly() {
         }
     }
     
-    // Write the link entry (12 bytes)
     uint8_t* linkPtr = _image.payload.links[_lastLinkIndex].peerId;
     for (size_t i = 0; i < DEVICE_UID_LEN; i++) {
         platform_storage_write(STORAGE_EEPROM_BASE + linkEntryOffset + i, linkPtr[i]);
     }
     
-    // Write crc32 (4 bytes)
     uint8_t* crcPtr = reinterpret_cast<uint8_t*>(&_image.header.crc32);
     for (size_t i = 0; i < sizeof(uint32_t); i++) {
         platform_storage_write(STORAGE_EEPROM_BASE + crcOffset + i, crcPtr[i]);
@@ -259,13 +225,7 @@ void Storage::setSecretKey(uint8_t version, const uint8_t key[32]) {
     _image.payload.keyVersion = version;
     memcpy(_image.payload.secretKey, key, 32);
     markDirty();
-    // CRITICAL: Write immediately for secret key (provisioning operation)
-    // This is intentionally NOT delayed because:
-    // 1. It's critical security data that must be persisted immediately
-    // 2. It happens rarely (once per device during provisioning)
-    // 3. The immediate write ensures the key is saved even if power is lost
-    // This one-time immediate write is acceptable for flash wear concerns
-    saveNow();
+    saveNow();  // Immediate save for critical security data
 }
 
 // =====================================================
@@ -297,38 +257,17 @@ bool Storage::loadFromNvm() {
 
 
 bool Storage::writeToNvm() {
-    // FLASH WRITE CYCLE MANAGEMENT:
-    // - Each call to writeToNvm() triggers a full page erase/write cycle
-    // - STM32L0 flash has ~10,000 erase/write cycles per page
-    // - Writing ~896 bytes counts as one write cycle regardless of how many bytes change
-    // - We minimize writes by:
-    //   1. Delayed writes (30s) to batch multiple changes
-    //   2. Only writing when data actually changes (dirty flag)
-    //   3. Immediate writes only for critical data (secret key provision)
-    
-    // Write all bytes - on STM32, each EEPROM.write() can take 5-10ms
-    // Writing ~896 bytes can block for 6-7 seconds, which blocks serial processing!
-    // This is why commands like CLEAR and PROVISION_KEY acknowledge BEFORE calling saveNow()
-    
-    // Write in chunks with periodic yields to allow serial interrupts to be processed
-    const size_t CHUNK_SIZE = 32;  // Write 32 bytes at a time
+    // Write in chunks with periodic yields
+    const size_t CHUNK_SIZE = 32;
     for (size_t i = 0; i < sizeof(PersistImageV1); ++i) {
         platform_storage_write(STORAGE_EEPROM_BASE + i, ((uint8_t*)&_image)[i]);
         
-        // Every CHUNK_SIZE bytes, yield to allow serial processing
-        // This prevents missing serial commands during long storage writes
         if ((i % CHUNK_SIZE) == (CHUNK_SIZE - 1)) {
-            // Yield briefly - this allows serial RX interrupts to be processed
-            // Serial.poll() can then read incoming commands
             platform_delay_ms(1);
         }
     }
     
-    // Commit writes to persistent storage
     platform_storage_commit();
-    
-    // TODO: Consider implementing write cycle counting to track flash wear
-    // TODO: For production, consider wear leveling across multiple flash pages
     
     return true;
 }

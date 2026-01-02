@@ -202,41 +202,35 @@ void TapLink::startNegotiation() {
     _roleKnown = false;
     _isMaster = false;
 
-    // === ROBUST SYNCHRONIZATION HANDSHAKE ===
-    // Goal: Get both boards to start bit exchange at the same time
-    // Strategy: Use multiple sync pulses to align timing
-
-    // Step 1: Release line and wait for HIGH
+    // Release line and wait for HIGH
     _hal->driveLow(false);
     uint32_t waitStart = _hal->micros();
     while (!_hal->readLine()) {
-        if (elapsedMicros(waitStart) > 100000) break;  // 100ms timeout
+        if (elapsedMicros(waitStart) > 100000) break;
     }
-    _hal->delayMicros(1000);  // Brief settle time
+    _hal->delayMicros(1000);
 
-    // Step 2: First sync pulse - signal "I'm entering negotiation"
+    // First sync pulse
     _hal->driveLow(true);
-    _hal->delayMicros(SYNC_PULSE_US);  // 10ms pulse
+    _hal->delayMicros(SYNC_PULSE_US);
     _hal->driveLow(false);
 
-    // Step 3: Wait for line to be HIGH (both released from first pulse)
+    // Wait for line HIGH
     waitStart = _hal->micros();
     while (!_hal->readLine()) {
         if (elapsedMicros(waitStart) > 20000) break;
     }
 
-    // Step 4: Wait for peer's sync pulse (line goes LOW)
-    // This ensures peer has also entered negotiation
+    // Wait for peer's sync pulse
     waitStart = _hal->micros();
     bool sawPeerSync = false;
-    while (elapsedMicros(waitStart) < 50000) {  // Wait up to 50ms for peer
+    while (elapsedMicros(waitStart) < 50000) {
         if (!_hal->readLine()) {
             sawPeerSync = true;
             break;
         }
     }
 
-    // Step 5: If we saw peer's sync, wait for it to complete
     if (sawPeerSync) {
         waitStart = _hal->micros();
         while (!_hal->readLine()) {
@@ -244,52 +238,41 @@ void TapLink::startNegotiation() {
         }
     }
 
-    // Step 6: Second sync pulse - final alignment
-    // Both boards should hit this at approximately the same time
-    _hal->delayMicros(SYNC_WAIT_US);  // 5ms wait
+    // Second sync pulse
+    _hal->delayMicros(SYNC_WAIT_US);
     _hal->driveLow(true);
-    _hal->delayMicros(SYNC_PULSE_US);  // 10ms pulse
+    _hal->delayMicros(SYNC_PULSE_US);
     _hal->driveLow(false);
 
-    // Step 7: Wait for line HIGH, then fixed delay
+    // Final alignment delay
     waitStart = _hal->micros();
     while (!_hal->readLine()) {
         if (elapsedMicros(waitStart) > 20000) break;
     }
-    _hal->delayMicros(SYNC_WAIT_US);  // 5ms final alignment
+    _hal->delayMicros(SYNC_WAIT_US);
 
-    // Now both boards should be synchronized within ~1-2ms
     _bitSlotStartTime = _hal->micros();
     _waitingForSync = false;
     _syncSent = true;
 }
 
 void TapLink::pollNegotiation() {
-    // Use blocking negotiation for reliable timing
-    // CRITICAL: Drive period is 5ms, sample at 2.5ms
-    // This ensures even with 2ms sync error, both boards are driving when we sample
-
     while (_negotiationBitIndex < NEGOTIATION_BITS && !_roleKnown) {
         // Get my bit for this position
         uint8_t byteIdx = _negotiationBitIndex / 8;
         uint8_t bitIdx = 7 - (_negotiationBitIndex % 8);  // MSB first
         bool myBit = (_selfId[byteIdx] >> bitIdx) & 1;
 
-        // === BIT SLOT START ===
-        // For '0' bit, drive low; for '1' bit, release (high via pull-up)
         if (!myBit) {
             _hal->driveLow(true);   // Send '0' by driving low
         } else {
             _hal->driveLow(false);  // Send '1' by releasing (high)
         }
 
-        // === WAIT UNTIL SAMPLE POINT ===
-        // Wait 2.5ms into the 5ms drive period
-        // At this point, even with 2ms sync error, peer should also be in their drive phase
+        // Wait until sample point
         _hal->delayMicros(BIT_SAMPLE_US);
 
-        // === SAMPLE THE LINE (multiple times for reliability) ===
-        // Take 3 samples with small delays to ensure stable reading
+        // Sample the line multiple times
         bool sample1 = _hal->readLine();
         _hal->delayMicros(100);
         bool sample2 = _hal->readLine();
@@ -300,33 +283,17 @@ void TapLink::pollNegotiation() {
         int lowCount = (!sample1 ? 1 : 0) + (!sample2 ? 1 : 0) + (!sample3 ? 1 : 0);
         bool lineIsLow = (lowCount >= 2);
 
-        // === CONTINUE DRIVING UNTIL END OF DRIVE PERIOD ===
-        // This ensures we're still driving when peer samples
+        // Continue driving until end of drive period
         _hal->delayMicros(BIT_DRIVE_US - BIT_SAMPLE_US - 200);
 
-        // === RELEASE LINE ===
         _hal->driveLow(false);
 
-        // === EVALUATE RESULT ===
-        // Wired-AND truth table:
-        // My bit | Peer bit | Line | My conclusion
-        // -------|----------|------|---------------
-        //   1    |    1     | HIGH | Both sent 1, continue
-        //   1    |    0     | LOW  | I sent 1, line LOW → I'm MASTER
-        //   0    |    1     | LOW  | I sent 0, can't tell → continue (peer will detect)
-        //   0    |    0     | LOW  | Both sent 0, continue
-
         if (myBit && lineIsLow) {
-            // I released (sent '1') but line is LOW → peer is driving LOW (sent '0')
-            // My bit '1' > peer bit '0' → I have HIGHER UID → I'm MASTER
+            // Higher UID wins master role
             _isMaster = true;
             _roleKnown = true;
         }
-        // Note: If I sent '0', I'm driving LOW, so line is always LOW
-        // I can't determine peer's bit, but if peer sent '1' (released),
-        // peer will see line is LOW and know THEY are master (I'm slave)
 
-        // === RECOVERY PERIOD ===
         _hal->delayMicros(BIT_RECOVERY_US);
 
         _negotiationBitIndex++;
@@ -368,10 +335,10 @@ void TapLink::pollNegotiation() {
 
     _state = DetectionState::Connected;
     _negotiationJustCompleted = true;
-    _lastPulseTime = _hal->micros();   // Reset pulse timer
-    _lastCommandTime = _hal->micros(); // Initialize command timer (for slave idle timeout)
-    _commandFailures = 0;              // Reset failure counter
-    _idExchangeComplete = false;       // ID exchange not done yet for this connection
+    _lastPulseTime = _hal->micros();
+    _lastCommandTime = _hal->micros();
+    _commandFailures = 0;
+    _idExchangeComplete = false;
 }
 
 bool TapLink::sendBit(bool bit) {
@@ -421,8 +388,6 @@ void TapLink::reset() {
     _hal->driveLow(false);  // Make sure line is released
 }
 
-// === Command Protocol Implementation ===
-
 void TapLink::sendStartPulse() {
     _hal->driveLow(true);
     _hal->delayMicros(CMD_START_PULSE_US);
@@ -457,25 +422,20 @@ void TapLink::sendByte(uint8_t byte) {
 bool TapLink::receiveByte(uint8_t* byte, uint32_t timeoutUs) {
     uint8_t result = 0;
     
-    // Receive 8 bits, MSB first
     for (int i = 7; i >= 0; i--) {
-        // Wait for sample point
         _hal->delayMicros(CMD_BIT_SAMPLE_US);
         
-        // Sample the line (take 3 samples for reliability)
         bool sample1 = _hal->readLine();
         _hal->delayMicros(100);
         bool sample2 = _hal->readLine();
         _hal->delayMicros(100);
         bool sample3 = _hal->readLine();
         
-        // Majority voting
         int highCount = (sample1 ? 1 : 0) + (sample2 ? 1 : 0) + (sample3 ? 1 : 0);
         bool bit = (highCount >= 2);
         
         result |= (bit ? 1 : 0) << i;
         
-        // Wait for rest of bit slot
         _hal->delayMicros(CMD_BIT_DRIVE_US - CMD_BIT_SAMPLE_US - 200 + CMD_BIT_RECOVERY_US);
     }
     
@@ -487,25 +447,15 @@ TapResponse TapLink::masterSendCommand(TapCommand cmd) {
     if (!_roleKnown || !_isMaster) return TapResponse::NONE;
     if (_state != DetectionState::Connected) return TapResponse::NONE;
     
-    // Send START pulse to signal command coming
     sendStartPulse();
-    
-    // Brief turnaround for slave to recognize START
     _hal->delayMicros(CMD_TURNAROUND_US);
-    
-    // Send command byte
     sendByte(static_cast<uint8_t>(cmd));
-    
-    // Turnaround for slave to prepare response
     _hal->delayMicros(CMD_TURNAROUND_US);
     
-    // Receive response byte
     uint8_t response;
     if (!receiveByte(&response, CMD_TIMEOUT_US)) {
-        // No response - peer may have disconnected
         _commandFailures++;
         if (_commandFailures >= MAX_COMMAND_FAILURES) {
-            // Too many failures - consider disconnected
             _state = DetectionState::NoConnection;
             _roleKnown = false;
             _peerReady = false;
@@ -513,13 +463,10 @@ TapResponse TapLink::masterSendCommand(TapCommand cmd) {
         return TapResponse::NONE;
     }
     
-    // Validate response is a known code (not 0xFF from floating line)
-    // When wire is disconnected, pull-up makes line HIGH, so we read 0xFF
     bool validResponse = (response == static_cast<uint8_t>(TapResponse::ACK) ||
                           response == static_cast<uint8_t>(TapResponse::NAK));
     
     if (!validResponse) {
-        // Invalid response (likely 0xFF from disconnected wire)
         _commandFailures++;
         if (_commandFailures >= MAX_COMMAND_FAILURES) {
             _state = DetectionState::NoConnection;
@@ -529,7 +476,6 @@ TapResponse TapLink::masterSendCommand(TapCommand cmd) {
         return TapResponse::NONE;
     }
     
-    // Successful valid response - reset failure counter
     _commandFailures = 0;
     
     // Update peer ready state for CHECK_READY
@@ -556,10 +502,9 @@ TapCommand TapLink::slaveReceiveCommand() {
     // Measure how long line has been LOW (to distinguish from presence pulse)
     uint32_t startTime = _hal->micros();
     
-    // Wait for line to go HIGH (end of START pulse)
     while (!_hal->readLine()) {
         if (elapsedMicros(startTime) > CMD_TIMEOUT_US) {
-            return TapCommand::NONE;  // Timeout waiting for START to end
+            return TapCommand::NONE;
         }
     }
     
@@ -571,16 +516,13 @@ TapCommand TapLink::slaveReceiveCommand() {
         return TapCommand::NONE;
     }
     
-    // Wait turnaround time (same as master)
     _hal->delayMicros(CMD_TURNAROUND_US);
     
-    // Receive command byte
     uint8_t cmd;
     if (!receiveByte(&cmd, CMD_TIMEOUT_US)) {
         return TapCommand::NONE;
     }
     
-    // Valid command received - update last command time for idle timeout
     _lastCommandTime = _hal->micros();
     
     return static_cast<TapCommand>(cmd);
@@ -590,14 +532,9 @@ void TapLink::slaveSendResponse(TapResponse response) {
     if (!_roleKnown || _isMaster) return;
     if (_state != DetectionState::Connected) return;
     
-    // Wait turnaround time before sending response
     _hal->delayMicros(CMD_TURNAROUND_US);
-    
-    // Send response byte
     sendByte(static_cast<uint8_t>(response));
 }
-
-// === Multi-byte send/receive helpers ===
 
 void TapLink::sendBytes(const uint8_t* data, size_t len) {
     for (size_t i = 0; i < len; i++) {
@@ -614,21 +551,15 @@ bool TapLink::receiveBytes(uint8_t* data, size_t len) {
     return true;
 }
 
-// === ID Exchange Commands ===
-
 bool TapLink::masterRequestId(uint8_t peerIdOut[DEVICE_UID_LEN]) {
     if (!_roleKnown || !_isMaster) return false;
     if (_state != DetectionState::Connected) return false;
     
-    // Send START + REQUEST_ID command
     sendStartPulse();
     _hal->delayMicros(CMD_TURNAROUND_US);
     sendByte(static_cast<uint8_t>(TapCommand::REQUEST_ID));
-    
-    // Wait for response
     _hal->delayMicros(CMD_TURNAROUND_US);
     
-    // Receive ACK first
     uint8_t response;
     if (!receiveByte(&response, CMD_TIMEOUT_US)) {
         _commandFailures++;
@@ -640,7 +571,6 @@ bool TapLink::masterRequestId(uint8_t peerIdOut[DEVICE_UID_LEN]) {
         return false;
     }
     
-    // Receive 12-byte UID
     if (!receiveBytes(peerIdOut, DEVICE_UID_LEN)) {
         _commandFailures++;
         return false;
@@ -655,18 +585,12 @@ bool TapLink::masterSendId() {
     if (!_roleKnown || !_isMaster) return false;
     if (_state != DetectionState::Connected) return false;
     
-    // Send START + SEND_ID command
     sendStartPulse();
     _hal->delayMicros(CMD_TURNAROUND_US);
     sendByte(static_cast<uint8_t>(TapCommand::SEND_ID));
-    
-    // Send our 12-byte UID
     sendBytes(_selfId, DEVICE_UID_LEN);
-    
-    // Wait for response
     _hal->delayMicros(CMD_TURNAROUND_US);
     
-    // Receive ACK
     uint8_t response;
     if (!receiveByte(&response, CMD_TIMEOUT_US)) {
         _commandFailures++;
@@ -680,7 +604,7 @@ bool TapLink::masterSendId() {
     
     _commandFailures = 0;
     _lastCommandTime = _hal->micros();
-    _idExchangeComplete = true;  // Both directions complete (master side)
+    _idExchangeComplete = true;
     return true;
 }
 
@@ -688,15 +612,9 @@ void TapLink::slaveHandleRequestId() {
     if (!_roleKnown || _isMaster) return;
     if (_state != DetectionState::Connected) return;
     
-    // Turnaround before response
     _hal->delayMicros(CMD_TURNAROUND_US);
-    
-    // Send ACK
     sendByte(static_cast<uint8_t>(TapResponse::ACK));
-    
-    // Send our 12-byte UID
     sendBytes(_selfId, DEVICE_UID_LEN);
-    
     _lastCommandTime = _hal->micros();
 }
 
@@ -704,22 +622,16 @@ bool TapLink::slaveHandleSendId(uint8_t peerIdOut[DEVICE_UID_LEN]) {
     if (!_roleKnown || _isMaster) return false;
     if (_state != DetectionState::Connected) return false;
     
-    // Receive 12-byte UID from master
     if (!receiveBytes(peerIdOut, DEVICE_UID_LEN)) {
-        // Turnaround and send NAK
         _hal->delayMicros(CMD_TURNAROUND_US);
         sendByte(static_cast<uint8_t>(TapResponse::NAK));
         return false;
     }
     
-    // Turnaround before response
     _hal->delayMicros(CMD_TURNAROUND_US);
-    
-    // Send ACK
     sendByte(static_cast<uint8_t>(TapResponse::ACK));
-    
     _lastCommandTime = _hal->micros();
-    _idExchangeComplete = true;  // Both directions complete (slave side)
+    _idExchangeComplete = true;
     return true;
 }
 #else
@@ -740,17 +652,12 @@ bool TapLink::isConnectionLost() {
 }
 
 void TapLink::prepareForSleep() {
-    // Configure GPIO for sleep mode
-    // In Arduino framework, this is limited, but we can at least
-    // ensure the pin is ready for wake-up
     _state = DetectionState::Sleeping;
     _connectionJustEstablished = false;
     _connectionJustLost = false;
 }
 
 void TapLink::handleWakeUp() {
-    // Called when MCU wakes from sleep due to tap interrupt
-    // Reconfigure GPIO for active mode and start validation
     _lastWakeTime = _hal->micros();
     _state = DetectionState::Waking;
     _stateStartTime = _lastWakeTime;
@@ -764,34 +671,22 @@ void TapLink::reset() {
 }
 
 bool TapLink::validateConnection() {
-    // Validate that the tap connection is real and stable
-    // For battery-powered devices, we need to be careful about:
-    // 1. Both devices having compatible voltage levels
-    // 2. Ground connection being established
-    // 3. Signal line being properly connected
-
     // Read line multiple times to check stability
     bool readings[5];
     for (int i = 0; i < 5; i++) {
         readings[i] = _hal->readLine();
-        _hal->delayMicros(100);  // Small delay between readings
+        _hal->delayMicros(100);
     }
 
-    // For a valid tap connection, we expect the line to be driven
-    // by the other device. With two batteries, the behavior depends
-    // on which device has higher voltage and who's driving the line.
-
-    // Check if readings are consistent (not floating/changing randomly)
+    // Check if readings are consistent
     bool firstReading = readings[0];
-    bool consistent = true;
     for (int i = 1; i < 5; i++) {
         if (readings[i] != firstReading) {
-            consistent = false;
-            break;
+            return false;
         }
     }
 
-    return consistent;  // Connection is valid if line state is stable
+    return true;
 }
 #endif
 
@@ -800,7 +695,6 @@ uint32_t TapLink::elapsedMicros(uint32_t startTime) {
     if (now >= startTime) {
         return now - startTime;
     } else {
-        // Handle micros() overflow (happens every ~71 minutes on 32-bit)
         return (UINT32_MAX - startTime) + now + 1;
     }
 }

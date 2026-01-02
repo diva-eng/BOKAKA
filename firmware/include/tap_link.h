@@ -18,13 +18,6 @@
 // 3. Connected: Master (higher UID) and Slave (lower UID) roles assigned
 // 4. Command Phase: Master sends commands, Slave responds
 //
-// Electrical principle:
-// - GPIO pin configured as input with pull-up (normally HIGH)
-// - When another device connects and drives the line LOW, we detect it
-// - Uses debouncing to avoid false positives from noise
-//
-// NOTE: TapCommand and TapResponse enums are now defined in i_tap_link.h
-//
 
 #ifdef EVAL_BOARD_TEST
 class TapLink : public ITapLinkEval {
@@ -86,41 +79,22 @@ public:
     // Reset detection state (after handling connection)
     void reset() override;
 
-    // === Command Protocol (for Connected state) ===
-    
-    // Master: Send a command and receive response
+    // Command protocol (master)
     TapResponse masterSendCommand(TapCommand cmd) override;
     
-    // Slave: Check for incoming command (non-blocking)
+    // Command protocol (slave)
     bool slaveHasCommand() override;
-    
-    // Slave: Receive the command (blocking)
     TapCommand slaveReceiveCommand() override;
-    
-    // Slave: Send response to master
     void slaveSendResponse(TapResponse response) override;
     
-    // Check if peer is ready
     bool isPeerReady() const override { return _peerReady; }
-    
-    // Clear peer ready flag
     void clearPeerReady() override { _peerReady = false; }
     
-    // === ID Exchange Commands ===
-    
-    // Master: Request slave's UID
+    // ID exchange
     bool masterRequestId(uint8_t peerIdOut[DEVICE_UID_LEN]) override;
-    
-    // Master: Send master's UID to slave
     bool masterSendId() override;
-    
-    // Slave: Handle REQUEST_ID command
     void slaveHandleRequestId() override;
-    
-    // Slave: Handle SEND_ID command
     bool slaveHandleSendId(uint8_t peerIdOut[DEVICE_UID_LEN]) override;
-    
-    // Check if ID exchange has been completed
     bool isIdExchangeComplete() const override { return _idExchangeComplete; }
 #else
     // Check if connection was just established
@@ -147,9 +121,7 @@ private:
     static constexpr uint32_t PULSE_INTERVAL_US = 50000; // 50ms between pulses
 
     // Negotiation timing constants (microseconds)
-    // CRITICAL: Drive period must be MUCH longer than any sync error
-    // to ensure both boards are driving when sampling occurs
-    static constexpr uint32_t BIT_DRIVE_US = 5000;       // 5ms drive period (long for overlap)
+    static constexpr uint32_t BIT_DRIVE_US = 5000;
     static constexpr uint32_t BIT_SAMPLE_US = 2500;      // Sample at 2.5ms (middle of drive)
     static constexpr uint32_t BIT_RECOVERY_US = 2000;    // 2ms recovery between bits
     static constexpr uint32_t SYNC_PULSE_US = 10000;     // 10ms sync pulse

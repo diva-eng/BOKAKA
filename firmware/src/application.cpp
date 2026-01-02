@@ -57,7 +57,7 @@ void Application::loop() {
 #ifdef EVAL_BOARD_TEST
         // Check if connection was just detected
         if (_tapLink->isConnectionDetected()) {
-            // Connection detected, negotiation starting
+            // Connection detected, negotiation starting, adding some animations if needed
         }
 
         // Check if negotiation just completed
@@ -196,21 +196,17 @@ void Application::handleMasterCommands(uint32_t nowMs) {
     }
 
     if (!_tapLink->isPeerReady()) {
-        // Step 1: Check if slave is ready
         _tapLink->masterSendCommand(TapCommand::CHECK_READY);
     } else if (!_tapLink->isIdExchangeComplete()) {
-        // Step 2: ID Exchange (two commands, sequential)
         uint8_t peerId[DEVICE_UID_LEN];
         if (_tapLink->masterRequestId(peerId)) {
             if (_tapLink->masterSendId()) {
-                // Both succeeded - store the link if new
                 if (_storage.addLink(peerId)) {
                     _storage.saveLinkOnly();
                 }
             }
         }
     } else {
-        // Step 3: Ongoing - keep checking connection is alive
         _tapLink->masterSendCommand(TapCommand::CHECK_READY);
     }
 
@@ -266,23 +262,16 @@ void Application::handleBatteryMode(uint32_t nowMs) {
     }
 
     if (_tapLink->isConnectionLost()) {
-        // Connection lost - could log, update state, etc.
+        // Handle connection lost event
     }
 
     TapLink::DetectionState currentState = _tapLink->getState();
 
     if (currentState == TapLink::DetectionState::Sleeping) {
-        // Prepare to enter sleep mode
-        // NOTE: Arduino framework doesn't provide easy access to STM32 sleep modes
-        // For proper implementation, you'd need STM32 HAL:
-        // - Configure GPIO interrupt for wake-up on tap pin
-        // - Call HAL_PWR_EnterSLEEPMode() or HAL_PWR_EnterSTOPMode()
-        // - Wake-up interrupt handler calls gTapLink->handleWakeUp()
-
         _tapLink->prepareForSleep();
-        platform_delay_ms(100);  // Simulate sleep period
+        platform_delay_ms(100);
 
-        // Simulate wake-up (in real implementation, this would be interrupt-driven)
+        // Placeholder for interrupt-driven wake-up
         static bool simulateWake = false;
         if (!simulateWake) {
             simulateWake = true;

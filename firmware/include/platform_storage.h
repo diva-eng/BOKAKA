@@ -28,10 +28,8 @@ uint8_t platform_storage_read(size_t address);
 // Write a single byte to storage
 // address: byte address (0-based)
 // value: byte value to write (0-255)
-// Note: May be buffered, use platform_storage_commit() to persist
 void platform_storage_write(size_t address, uint8_t value);
 
-// Commit any buffered writes to persistent storage
+// Commit buffered writes to persistent storage
 // Returns: true if successful, false on error
-// Note: Some implementations may auto-commit, this is a no-op in that case
 bool platform_storage_commit();

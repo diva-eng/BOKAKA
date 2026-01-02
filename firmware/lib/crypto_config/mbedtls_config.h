@@ -16,15 +16,7 @@
 #define MBEDTLS_CIPHER_MODE_CBC
 #define MBEDTLS_CIPHER_PADDING_PKCS7
 
-/* Memory-related: disable dynamic allocation (optional) */
-// #define MBEDTLS_PLATFORM_MEMORY
-// #define MBEDTLS_PLATFORM_STD_CALLOC     your_calloc
-// #define MBEDTLS_PLATFORM_STD_FREE       your_free
-
-/* To enable debug options, add: */
-// #define MBEDTLS_DEBUG_C
-
-/* Disable modules you don't need to save Flash */
+/* Disable modules not needed to save Flash */
 #include "mbedtls/check_config.h"
 
 #endif /* MBEDTLS_CONFIG_H */
