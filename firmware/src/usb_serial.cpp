@@ -147,7 +147,7 @@ void UsbCommandHandler::handleLine(Storage &storage, const char *line)
     {
         cmdGetState(storage);
     }
-    else if (strcmp(cmd, "CLEAR") == 0)
+    else if (strcmp(cmd, "CLEAR") == 0 || strcmp(cmd, "RESET_TAPS") == 0)
     {
         cmdClear(storage);
     }

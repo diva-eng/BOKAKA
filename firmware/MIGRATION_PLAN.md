@@ -1,916 +1,205 @@
-# Migration Plan: PlatformIO to STM32CubeIDE
+# Migration Plan: PlatformIO → STM32CubeIDE
 
 ## Overview
-This document outlines the step-by-step migration plan for moving the Bokaka-Eval firmware from PlatformIO (Arduino framework) to STM32CubeIDE (HAL framework) for production deployment.
 
-**Target Board:** STM32L053R8 (same as Nucleo-L053R8, but custom board)
+This document outlines the migration plan for moving the Bokaka firmware from PlatformIO/Arduino to STM32CubeIDE/HAL.
 
----
-
-## Table of Contents
-1. [Prerequisites](#prerequisites)
-2. [Project Structure Changes](#project-structure-changes)
-3. [Code Migration Tasks](#code-migration-tasks)
-4. [Dependencies Migration](#dependencies-migration)
-5. [Build System Configuration](#build-system-configuration)
-6. [Testing & Validation](#testing--validation)
-7. [Timeline Estimate](#timeline-estimate)
+**Target:** STM32L053R8  
+**Status:** ✅ Platform abstraction complete - ready for HAL implementation
 
 ---
 
-## Prerequisites
+## Current Architecture
 
-### Software Requirements
-- **STM32CubeIDE** (latest version, e.g., 1.15+)
-- **STM32CubeMX** (integrated or standalone)
-- **STM32CubeL0 HAL/LL** (installed via CubeMX)
-- **mbedTLS 2.23.0+** (or compatible version)
-- **ST-Link Utility** or **STM32CubeProgrammer** (for flashing)
+All application code is **platform-independent**. Only the platform implementation files need to be replaced:
 
-### Hardware Requirements
-- Custom STM32L053R8 board (target hardware)
-- ST-Link programmer/debugger
-- USB cable for USB CDC communication
-
-### Knowledge Requirements
-- STM32 HAL API familiarity
-- Understanding of STM32CubeIDE project structure
-- Basic knowledge of STM32 flash memory management
+| Layer | Status | Notes |
+|-------|--------|-------|
+| Application (`main.cpp`, `storage.cpp`, `usb_serial.cpp`, `tap_link.cpp`) | ✅ Abstracted | No changes needed |
+| Platform interfaces (`platform_*.h`) | ✅ Complete | Define the abstraction API |
+| Arduino implementations (`*_arduino.cpp`) | ✅ Working | Current PlatformIO build |
+| HAL implementations (`*_hal.cpp`) | 🔄 To create | For STM32CubeIDE migration |
 
 ---
 
-## Project Structure Changes
+## Migration Steps
 
-### Current PlatformIO Structure
+### Phase 1: STM32CubeIDE Project Setup
+
+1. **Create new STM32 project** (STM32L053R8)
+2. **Configure with CubeMX:**
+   - System clock: HSI16 (16 MHz)
+   - USB Device: CDC (Virtual COM Port)
+   - GPIO: PA9 for tap link, PA5/PA6 for status LEDs
+3. **Generate code**
+
+### Phase 2: Copy Application Code
+
+Copy to `Core/Inc/` and `Core/Src/`:
+
 ```
-firmware/
-├── include/          # Header files
-├── src/              # Source files
-├── lib/              # Libraries (mbedTLS config)
-├── platformio.ini    # Build configuration
-└── extra_script.py   # Build-time scripts
+Headers (include/ → Core/Inc/):
+  storage.h, usb_serial.h, tap_link.h, tap_link_hal.h
+  device_id.h, status_display.h, fw_config.h
+  platform_timing.h, platform_serial.h
+  platform_storage.h, platform_gpio.h
+
+Sources (src/ → Core/Src/):
+  storage.cpp, usb_serial.cpp, tap_link.cpp
+  device_id.cpp, status_display.cpp
 ```
 
-### Target STM32CubeIDE Structure
-```
-Bokaka-Eval/
-├── Core/
-│   ├── Inc/          # Header files (from include/)
-│   ├── Src/          # Source files (from src/)
-│   └── Startup/      # Auto-generated startup code
-├── Drivers/
-│   ├── STM32L0xx_HAL_Driver/  # HAL drivers
-│   └── CMSIS/                  # CMSIS core files
-├── Middlewares/
-│   └── mbedTLS/      # mbedTLS library
-├── .mxproject        # CubeMX project file
-└── .cproject         # Eclipse project file
-```
+### Phase 3: Create HAL Implementations
 
----
+Create these files (see [PLATFORM_ABSTRACTION.md](PLATFORM_ABSTRACTION.md) for implementation details):
 
-## Code Migration Tasks
+| File | Purpose |
+|------|---------|
+| `platform_timing_hal.cpp` | HAL timing (SysTick, DWT) |
+| `platform_serial_hal.cpp` | USB CDC communication |
+| `platform_storage_hal.cpp` | EEPROM emulation |
+| `platform_gpio_hal.cpp` | GPIO operations |
+| `tap_link_hal_hal.cpp` | Tap link HAL (copy from Arduino, update pins) |
 
-### 1. Project Initialization in STM32CubeIDE
+### Phase 4: Convert Main Entry Point
 
-#### 1.1 Create New Project
-- [ ] Launch STM32CubeIDE
-- [ ] Create new STM32 project
-- [ ] Select **STM32L053R8** microcontroller
-- [ ] Configure project name: `Bokaka-Eval`
-- [ ] Set project location
+Replace Arduino `setup()`/`loop()` with standard `main()`:
 
-#### 1.2 Configure System Clock (CubeMX)
-- [ ] Set HSI16 as system clock source (or external crystal if available)
-- [ ] Configure system clock to 16 MHz (or target frequency)
-- [ ] Enable PLL if higher frequency needed
-- [ ] Configure flash latency settings
-
-#### 1.3 Configure Peripherals (CubeMX)
-- [ ] **USB Device (CDC)**: Enable Virtual COM Port
-  - Configure USB descriptors
-  - Set USB device name
-  - Configure USB clock (48 MHz from PLL)
-- [ ] **GPIO**: Configure tap link pin (default: PA9/D8 on CN5 digital header)
-  - Set as GPIO_Input with Pull-up (initial state)
-  - Configure for open-drain operation
-- [ ] **Flash**: Configure for EEPROM emulation
-  - Review flash page layout
-  - Plan EEPROM emulation location (avoid bootloader area)
-
----
-
-### 2. Replace Arduino Framework with HAL
-
-#### 2.1 Main Entry Point (`main.cpp` → `main.c`)
-
-**Current (Arduino - Already Abstracted):**
 ```cpp
-void setup() {
-    platform_timing_init();  // Platform abstraction
-    gStorage.begin();
-    gUsb.begin(115200);
-    // ...
-}
-
-void loop() {
-    gStorage.loop();
-    gUsb.poll(gStorage);
-    // ...
-    platform_delay_ms(5);  // Platform abstraction
-}
-```
-
-**Target (HAL):**
-```c
 int main(void) {
     HAL_Init();
     SystemClock_Config();
     MX_GPIO_Init();
     MX_USB_DEVICE_Init();
     
-    // Initialize platform abstractions
-    platform_timing_init();  // Same abstraction call!
-    
-    // Initialize application (same code!)
-    gStorage.begin();
-    gUsb.begin(115200);
-    // ...
+    platform_timing_init();
+    // ... existing setup code (unchanged!) ...
     
     while (1) {
-        gStorage.loop();
-        gUsb.poll(gStorage);
-        if (gTapLink) {
-            gTapLink->poll();
-            if (gTapLink->isConnectionComplete()) {
-                gTapLink->reset();
-            }
-        }
-        platform_delay_ms(5);  // Same abstraction call!
+        // ... existing loop code (unchanged!) ...
     }
 }
 ```
 
-**Tasks:**
-- [ ] Create `Core/Src/main.c` (or rename `main.cpp` to `main.c`)
-- [ ] Replace `setup()` with initialization code in `main()`
-- [ ] Replace `loop()` with `while(1)` loop
-- [ ] Add HAL initialization calls (HAL_Init, SystemClock_Config, etc.)
-- [ ] Add peripheral initialization calls (generated by CubeMX)
-- [ ] **Note:** Application code remains unchanged - all platform calls use abstractions!
+### Phase 5: Integrate mbedTLS
+
+1. Download mbedTLS 2.23.0+
+2. Copy to `Middlewares/mbedTLS/`
+3. Copy `lib/crypto_config/mbedtls_config.h`
+4. Configure build:
+   - Add include paths
+   - Add define: `MBEDTLS_CONFIG_FILE="mbedtls_config.h"`
+
+### Phase 6: Build & Test
+
+1. Enable C++ support in project settings
+2. Fix compilation errors
+3. Test all functionality
 
 ---
 
-#### 2.2 Timing Functions
+## HAL Implementation Notes
 
-**✅ Already Abstracted!** All timing functions use `platform_timing_*()` abstractions.
+### Timing
 
-**Current (Arduino - Already Abstracted):**
-- Application code uses: `platform_millis()`, `platform_micros()`, `platform_delay_ms()`, `platform_delay_us()`
-- Implementation: `src/platform_timing_arduino.cpp` (Arduino framework)
-
-**Target (HAL - Create Implementation):**
-Create `Core/Src/platform_timing_hal.cpp`:
-
-```c
-#include "platform_timing.h"
-#include "stm32l0xx_hal.h"
-
-// Enable DWT cycle counter for micros()
-static bool dwt_initialized = false;
-
+```cpp
 void platform_timing_init() {
-    HAL_Init();  // Initializes SysTick for millis()
-    
-    // Enable DWT cycle counter for micros()
     CoreDebug->DEMCR |= CoreDebug_DEMCR_TRCENA_Msk;
     DWT->CTRL |= DWT_CTRL_CYCCNTENA_Msk;
-    DWT->CYCCNT = 0;
-    dwt_initialized = true;
 }
 
-uint32_t platform_millis() {
-    return HAL_GetTick();
-}
-
-uint32_t platform_micros() {
-    if (!dwt_initialized) return 0;
-    return DWT->CYCCNT / (SystemCoreClock / 1000000);
-}
-
-void platform_delay_ms(uint32_t ms) {
-    HAL_Delay(ms);
-}
-
-void platform_delay_us(uint32_t us) {
-    // Simple busy-wait implementation
-    uint32_t start = platform_micros();
-    while ((platform_micros() - start) < us) {
-        // Busy wait
-    }
-}
+uint32_t platform_millis() { return HAL_GetTick(); }
+uint32_t platform_micros() { return DWT->CYCCNT / (SystemCoreClock / 1000000); }
+void platform_delay_ms(uint32_t ms) { HAL_Delay(ms); }
 ```
 
-**Tasks:**
-- [ ] Create `Core/Src/platform_timing_hal.cpp`
-- [ ] Implement all `platform_timing_*()` functions using HAL
-- [ ] **No changes needed to application code!** It already uses abstractions.
+### USB Serial
 
-**Files Already Using Abstractions (No Changes Needed):**
-- `src/storage.cpp` - uses `platform_millis()`
-- `src/tap_link_hal_arduino.cpp` - uses `platform_micros()`, `platform_delay_us()`
-- `src/usb_serial.cpp` - uses `platform_millis()`, `platform_delay_ms()`
+Use CubeMX-generated `usbd_cdc_if.c` functions:
+- `CDC_Transmit()` for output
+- `CDC_Receive()` for input
 
----
+### Storage
 
-#### 2.3 GPIO Functions (Tap Link HAL)
+Use STM32 EEPROM Emulation library from STM32CubeL0:
+- `EE_Init()` for initialization
+- `EE_ReadVariable()` / `EE_WriteVariable()` for read/write
+- Handle 16-bit word alignment
 
-**✅ Already Abstracted!** Tap link HAL uses `platform_gpio_*()` abstractions.
+### GPIO
 
-**Current (Arduino - Already Abstracted):**
-- Tap link HAL uses: `platform_gpio_pin_mode()`, `platform_gpio_read()`, `platform_gpio_write()`
-- Implementation: `src/platform_gpio_arduino.cpp` (Arduino framework)
-- Tap link HAL: `src/tap_link_hal_arduino.cpp` (fully abstracted)
-
-**Target (HAL - Create Implementations):**
-
-**Step 1: Create GPIO HAL Implementation**
-Create `Core/Src/platform_gpio_hal.cpp`:
-
-```c
-#include "platform_gpio.h"
-#include "stm32l0xx_hal.h"
-#include "main.h"  // CubeMX-generated, contains GPIO handles
-
-// Map platform pin IDs to HAL GPIO handles
-// This mapping needs to be configured based on your pin usage
-static GPIO_TypeDef* get_gpio_port(uint32_t pin);
-static uint16_t get_gpio_pin(uint32_t pin);
-
+```cpp
 void platform_gpio_pin_mode(uint32_t pin, platform_gpio_mode_t mode) {
-    GPIO_TypeDef* port = get_gpio_port(pin);
-    uint16_t hal_pin = get_gpio_pin(pin);
-    
-    GPIO_InitTypeDef GPIO_InitStruct = {0};
-    GPIO_InitStruct.Pin = hal_pin;
-    
-    switch (mode) {
-        case PLATFORM_GPIO_MODE_INPUT:
-            GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-            GPIO_InitStruct.Pull = GPIO_NOPULL;
-            break;
-        case PLATFORM_GPIO_MODE_INPUT_PULLUP:
-            GPIO_InitStruct.Mode = GPIO_MODE_INPUT;
-            GPIO_InitStruct.Pull = GPIO_PULLUP;
-            break;
-        case PLATFORM_GPIO_MODE_OUTPUT:
-            GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-            GPIO_InitStruct.Pull = GPIO_NOPULL;
-            GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-            break;
-        case PLATFORM_GPIO_MODE_OUTPUT_OD:
-            GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_OD;
-            GPIO_InitStruct.Pull = GPIO_NOPULL;
-            GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-            break;
-    }
-    
-    HAL_GPIO_Init(port, &GPIO_InitStruct);
-}
-
-bool platform_gpio_read(uint32_t pin) {
-    GPIO_TypeDef* port = get_gpio_port(pin);
-    uint16_t hal_pin = get_gpio_pin(pin);
-    return HAL_GPIO_ReadPin(port, hal_pin) == GPIO_PIN_SET;
-}
-
-void platform_gpio_write(uint32_t pin, platform_gpio_state_t state) {
-    GPIO_TypeDef* port = get_gpio_port(pin);
-    uint16_t hal_pin = get_gpio_pin(pin);
-    HAL_GPIO_WritePin(port, hal_pin, 
-        (state == PLATFORM_GPIO_HIGH) ? GPIO_PIN_SET : GPIO_PIN_RESET);
+    GPIO_InitTypeDef init = {0};
+    init.Pin = get_gpio_pin(pin);
+    init.Mode = (mode == PLATFORM_GPIO_MODE_OUTPUT) ? GPIO_MODE_OUTPUT_PP : GPIO_MODE_INPUT;
+    init.Pull = (mode == PLATFORM_GPIO_MODE_INPUT_PULLUP) ? GPIO_PULLUP : GPIO_NOPULL;
+    HAL_GPIO_Init(get_gpio_port(pin), &init);
 }
 ```
 
-**Step 2: Create Tap Link HAL Implementation**
-Create `Core/Src/tap_link_hal_hal.cpp` (copy from `tap_link_hal_arduino.cpp` and update pin definition):
-
-```cpp
-#include "tap_link_hal.h"
-#include "platform_timing.h"
-#include "platform_gpio.h"
-#include "main.h"  // For GPIO pin definitions
-
-// Use HAL pin definition (e.g., from CubeMX)
-#ifndef TAP_LINK_PIN
-#define TAP_LINK_PIN GPIO_PIN_9  // PA9 (D8 on NUCLEO-L053R8 CN5)
-#endif
-#ifndef TAP_LINK_PORT
-#define TAP_LINK_PORT GPIOA
-#endif
-
-// Convert HAL pin to platform pin ID (implementation-specific)
-#define PLATFORM_PIN_ID(port, pin) ((uint32_t)(((port - GPIOA) << 16) | pin))
-
-class OneWireHalHAL : public IOneWireHal {
-private:
-    uint32_t _pin;
-    
-public:
-    OneWireHalHAL(uint32_t pin) : _pin(pin) {
-        platform_gpio_pin_mode(_pin, PLATFORM_GPIO_MODE_INPUT_PULLUP);
-    }
-    
-    // ... rest same as Arduino version, uses platform abstractions
-};
-```
-
-**Tasks:**
-- [ ] Create `Core/Src/platform_gpio_hal.cpp` - HAL GPIO implementation
-- [ ] Create `Core/Src/tap_link_hal_hal.cpp` - HAL tap link implementation
-- [ ] Configure pin mapping (HAL pin → platform pin ID)
-- [ ] **No changes needed to tap link logic!** It already uses abstractions.
-
 ---
 
-#### 2.4 USB Serial (CDC) Communication
+## Testing Checklist
 
-**✅ Already Abstracted!** All serial communication uses `platform_serial_*()` abstractions.
+### Hardware Tests
 
-**Current (Arduino - Already Abstracted):**
-- Application code uses: `platform_serial_begin()`, `platform_serial_available()`, `platform_serial_read()`, `platform_serial_print()`, `platform_serial_println()`, `platform_serial_flush()`
-- Implementation: `src/platform_serial_arduino.cpp` (Arduino Serial)
-- Application: `src/usb_serial.cpp` (fully abstracted)
+- [ ] GPIO (tap link) - read/write, open-drain
+- [ ] GPIO (status LEDs) - LED patterns
+- [ ] USB CDC - connect, enumerate, communicate
+- [ ] Flash storage - read/write, power cycle
+- [ ] Device UID - read correctly
+- [ ] Timing - millis, micros, delays accurate
 
-**Target (HAL - Create Implementation):**
-Create `Core/Src/platform_serial_hal.cpp`:
+### Functional Tests
 
-```c
-#include "platform_serial.h"
-#include "usb_device.h"
-#include "usbd_cdc_if.h"
-#include <string.h>
-#include <stdio.h>
+- [ ] Storage: begin(), saveNow(), clearAll(), addLink()
+- [ ] USB commands: hello, get_state, clear, dump
+- [ ] USB commands: provision_key, sign_state
+- [ ] Tap link: connection protocol, state machine
+- [ ] Status display: LED patterns for each state
+- [ ] Crypto: HMAC-SHA256 signing
 
-void platform_serial_begin(uint32_t baud) {
-    // USB CDC doesn't use baud rate, but keep parameter for compatibility
-    // Wait for USB connection to be established
-    while (CDC_IsConnected() == 0) {
-        HAL_Delay(10);
-    }
-    HAL_Delay(100);  // Additional stabilization
-}
+### Comparison Tests
 
-int platform_serial_available() {
-    return CDC_GetRxBufferLen();
-}
-
-int platform_serial_read() {
-    uint8_t buf[1];
-    if (CDC_Receive(buf, 1) > 0) {
-        return buf[0];
-    }
-    return -1;
-}
-
-void platform_serial_print(const char* str) {
-    CDC_Transmit((uint8_t*)str, strlen(str));
-}
-
-void platform_serial_print(int num) {
-    char buf[32];
-    snprintf(buf, sizeof(buf), "%d", num);
-    CDC_Transmit((uint8_t*)buf, strlen(buf));
-}
-
-void platform_serial_print(uint32_t num) {
-    char buf[32];
-    snprintf(buf, sizeof(buf), "%lu", (unsigned long)num);
-    CDC_Transmit((uint8_t*)buf, strlen(buf));
-}
-
-void platform_serial_print_hex(uint8_t byte) {
-    char buf[3];
-    snprintf(buf, sizeof(buf), "%02X", byte);
-    CDC_Transmit((uint8_t*)buf, 2);
-}
-
-void platform_serial_println(const char* str) {
-    char buf[256];
-    snprintf(buf, sizeof(buf), "%s\r\n", str);
-    CDC_Transmit((uint8_t*)buf, strlen(buf));
-}
-
-void platform_serial_flush() {
-    // Wait for transmission to complete
-    // Implementation depends on CDC_Transmit behavior
-    // May need to check transmission status
-}
-```
-
-**Note:** STM32CubeMX generates `usbd_cdc_if.c` with `CDC_Transmit()` and `CDC_Receive()` functions. You may need to modify these or create wrapper functions for non-blocking operation.
-
-**Tasks:**
-- [ ] Create `Core/Src/platform_serial_hal.cpp` - HAL USB CDC implementation
-- [ ] Implement all `platform_serial_*()` functions using USB CDC
-- [ ] Handle USB connection state (wait for enumeration)
-- [ ] Implement non-blocking transmit/receive if needed
-- [ ] **No changes needed to application code!** It already uses abstractions.
-
-**Files Already Using Abstractions (No Changes Needed):**
-- `src/usb_serial.cpp` - all Serial calls already replaced with `platform_serial_*()`
-
----
-
-#### 2.5 EEPROM/Flash Storage
-
-**✅ Already Abstracted!** All storage operations use `platform_storage_*()` abstractions.
-
-**Current (Arduino - Already Abstracted):**
-- Application code uses: `platform_storage_begin()`, `platform_storage_read()`, `platform_storage_write()`, `platform_storage_commit()`
-- Implementation: `src/platform_storage_arduino.cpp` (Arduino EEPROM)
-- Application: `src/storage.cpp` (fully abstracted, no EEPROM.h dependency)
-
-**Target (STM32 Flash - Create Implementation):**
-STM32L0 has limited flash write cycles. Use STM32 EEPROM Emulation Library.
-
-**Option A: Use STM32 EEPROM Emulation Library (Recommended)**
-- ST provides `EEPROM_Emulation` library for STM32L0
-- Available in STM32CubeL0 package: `STM32CubeL0/Projects/NUCLEO-L053R8/Examples/EEPROM/EEPROM_Emulation`
-
-**Implementation:**
-Create `Core/Src/platform_storage_hal.cpp`:
-
-```c
-#include "platform_storage.h"
-#include "eeprom_emulation.h"
-#include <string.h>
-#include <cstddef>
-
-static size_t g_storage_size = 0;
-static bool g_storage_initialized = false;
-
-// EEPROM emulation variable IDs (define these)
-#define STORAGE_HEADER_VAR  0x0001
-#define STORAGE_PAYLOAD_VAR 0x0002
-
-bool platform_storage_begin(size_t size) {
-    g_storage_size = size;
-    
-    // Initialize EEPROM emulation
-    if (EE_Init() != EE_OK) {
-        return false;
-    }
-    
-    g_storage_initialized = true;
-    return true;
-}
-
-uint8_t platform_storage_read(size_t address) {
-    if (!g_storage_initialized || address >= g_storage_size) {
-        return 0;
-    }
-    
-    // EEPROM emulation works with 16-bit words
-    // Need to read word containing the byte
-    size_t word_addr = address / 2;
-    uint16_t word;
-    
-    if (address % 2 == 0) {
-        // Even address - read from header or payload
-        // This is simplified - actual implementation needs proper variable mapping
-        EE_ReadVariable(STORAGE_PAYLOAD_VAR + (word_addr / 256), &word);
-        return (uint8_t)(word & 0xFF);
-    } else {
-        // Odd address
-        EE_ReadVariable(STORAGE_PAYLOAD_VAR + (word_addr / 256), &word);
-        return (uint8_t)((word >> 8) & 0xFF);
-    }
-}
-
-void platform_storage_write(size_t address, uint8_t value) {
-    if (!g_storage_initialized || address >= g_storage_size) {
-        return;
-    }
-    
-    // EEPROM emulation works with 16-bit words
-    // Need to read-modify-write
-    size_t word_addr = address / 2;
-    uint16_t word;
-    
-    // Read existing word
-    EE_ReadVariable(STORAGE_PAYLOAD_VAR + (word_addr / 256), &word);
-    
-    // Modify byte
-    if (address % 2 == 0) {
-        word = (word & 0xFF00) | value;
-    } else {
-        word = (word & 0x00FF) | ((uint16_t)value << 8);
-    }
-    
-    // Write back
-    EE_WriteVariable(STORAGE_PAYLOAD_VAR + (word_addr / 256), word);
-}
-
-bool platform_storage_commit() {
-    // EEPROM emulation commits automatically on write
-    return true;
-}
-```
-
-**Note:** The above is a simplified example. Actual implementation should:
-- Map byte addresses to EEPROM emulation variables efficiently
-- Handle 16-bit word alignment properly
-- Consider using a single variable for the entire storage block
-
-**Tasks:**
-- [ ] Copy EEPROM emulation library from STM32CubeL0 to project
-- [ ] Configure EEPROM emulation in CubeMX (or manually)
-  - Define flash pages for EEPROM emulation
-  - Avoid bootloader/program area
-- [ ] Create `Core/Src/platform_storage_hal.cpp` - HAL storage implementation
-- [ ] Implement byte-level read/write using EEPROM emulation
-- [ ] Handle 16-bit word alignment (STM32 flash requirement)
-- [ ] **No changes needed to application code!** It already uses abstractions.
-
-**Files Already Using Abstractions (No Changes Needed):**
-- `src/storage.cpp` - all EEPROM calls already replaced with `platform_storage_*()`
-
----
-
-#### 2.6 Device ID (HAL UID Functions)
-
-**Current:**
-```cpp
-#include "stm32l0xx_hal.h"
-HAL_GetUIDw0();
-HAL_GetUIDw1();
-HAL_GetUIDw2();
-```
-
-**Target:**
-The HAL functions should work the same, but verify the include path.
-
-**Tasks:**
-- [ ] Verify `src/device_id.cpp` compiles with HAL includes
-- [ ] Test UID reading on target hardware
-- [ ] Ensure correct byte order (big-endian)
-
-**Files to check:**
-- `src/device_id.cpp` - should work with minimal changes
-
----
-
-#### 2.7 Status Display (LED Status Indication)
-
-**✅ Already Abstracted!** Status display uses `platform_gpio_*()` and `platform_timing_*()` abstractions.
-
-**Current (Arduino - Already Abstracted):**
-- Status display uses: `platform_gpio_pin_mode()`, `platform_gpio_write()`, `platform_millis()`
-- Implementation: `src/status_display.cpp` (fully abstracted)
-- Application: `src/main.cpp` (uses `StatusDisplay` class)
-
-**Target (HAL - No Implementation Needed):**
-The status display automatically uses the platform abstractions. Once `platform_gpio_hal.cpp` and `platform_timing_hal.cpp` are implemented, the status display will work automatically.
-
-**Configuration:**
-- Configure LED pins in CubeMX or `main.h`:
-  ```c
-  #define STATUS_LED0_PIN GPIO_PIN_5   // Example: PA5
-  #define STATUS_LED1_PIN GPIO_PIN_6   // Example: PA6
-  ```
-- The HAL GPIO implementation must map these pin IDs to HAL GPIO handles
-
-**Tasks:**
-- [ ] Configure LED GPIO pins in CubeMX (or manually in `main.h`)
-- [ ] Verify pin mapping in `platform_gpio_hal.cpp` supports LED pins
-- [ ] Test LED patterns after GPIO HAL is implemented
-- [ ] **No changes needed to status display code!** It already uses abstractions.
-
-**Files Already Using Abstractions (No Changes Needed):**
-- `src/status_display.cpp` - all GPIO and timing calls use platform abstractions
-- `src/main.cpp` - uses `StatusDisplay` class (platform-independent)
-
-**Pattern Behavior:**
-- LED 0: Device readiness and handshake status (booting, idle, detecting, negotiating, etc.)
-- LED 1: Master/Slave role (ON = master, OFF = slave, blinking = unknown)
-
-See `STATUS_DISPLAY_README.md` for detailed documentation.
-
----
-
-### 3. mbedTLS Integration
-
-#### 3.1 Add mbedTLS to Project
-
-**Option A: Use STM32CubeMX Software Pack (if available)**
-- Some STM32Cube versions include mbedTLS as a software pack
-
-**Option B: Manual Integration (Recommended)**
-- Download mbedTLS 2.23.0 (or compatible version)
-- Copy to `Middlewares/mbedTLS/`
-- Configure build settings
-
-**Steps:**
-1. [ ] Download mbedTLS source (https://github.com/Mbed-TLS/mbedtls)
-2. [ ] Copy to `Middlewares/mbedTLS/`
-3. [ ] Copy `lib/crypto_config/mbedtls_config.h` to `Middlewares/mbedTLS/include/`
-4. [ ] Add mbedTLS source files to project build
-5. [ ] Configure include paths in project settings
-6. [ ] Add preprocessor define: `MBEDTLS_CONFIG_FILE="mbedtls_config.h"`
-
-#### 3.2 Configure Build Settings
-
-**In STM32CubeIDE:**
-- Project Properties → C/C++ Build → Settings
-- **Tool Settings → MCU GCC Compiler → Preprocessor**
-  - Add: `MBEDTLS_CONFIG_FILE="mbedtls_config.h"`
-- **Tool Settings → MCU GCC Compiler → Includes**
-  - Add: `Middlewares/mbedTLS/include`
-  - Add: `Middlewares/mbedTLS/include/mbedtls`
-- **Tool Settings → MCU GCC Compiler → Source Location**
-  - Add: `Middlewares/mbedTLS/library` (for .c files)
-
-**Tasks:**
-- [ ] Add mbedTLS to project
-- [ ] Configure include paths
-- [ ] Configure preprocessor defines
-- [ ] Verify `src/usb_serial.cpp` compiles with mbedTLS
-- [ ] Test HMAC-SHA256 functionality
-
-**Files to modify:**
-- `src/usb_serial.cpp` - verify mbedTLS includes work
-- `lib/crypto_config/mbedtls_config.h` - may need adjustments for HAL
-
----
-
-### 4. Build System Configuration
-
-#### 4.1 Build Flags Migration
-
-**Current (platformio.ini):**
-```ini
-build_flags =
-    -DMBEDTLS_CONFIG_FILE=\"mbedtls_config.h\"
-    -Ilib/crypto_config
-    -DENABLE_TEST_COMMANDS  # for dev build
-```
-
-**Target (STM32CubeIDE):**
-- Project Properties → C/C++ Build → Settings
-- **MCU GCC Compiler → Preprocessor**
-  - Add defines: `MBEDTLS_CONFIG_FILE="mbedtls_config.h"`, `ENABLE_TEST_COMMANDS` (for debug build)
-- **MCU GCC Compiler → Includes**
-  - Add: `lib/crypto_config` (if needed)
-
-#### 4.2 Git Hash Injection
-
-**Current:** `extra_script.py` injects git hash at build time
-
-**Target:** Use build script or pre-build step in STM32CubeIDE
-
-**Option A: Pre-build Script**
-- Project Properties → C/C++ Build → Settings → Build Steps
-- **Pre-build steps → Command:**
-```bash
-powershell -Command "$hash = git rev-parse --short HEAD; if (-not $hash) { $hash = 'nogit' }; $content = '#define FW_BUILD_HASH \"' + $hash + '\"'; Set-Content -Path 'Core/Inc/fw_build_hash.h' -Value $content"
-```
-
-**Option B: Manual Header File**
-- Create `Core/Inc/fw_build_hash.h` manually or via script
-
-**Tasks:**
-- [ ] Set up pre-build step for git hash
-- [ ] Create `fw_build_hash.h` (or integrate into existing header)
-- [ ] Verify `FW_BUILD_HASH` is available in code
-
----
-
-### 5. Code Cleanup & Refactoring
-
-#### 5.1 Remove Arduino Dependencies
-
-**✅ Already Done!** All application code is platform-independent.
-
-**Files Already Clean:**
-- ✅ `include/storage.h` - No Arduino.h, uses standard headers
-- ✅ `include/usb_serial.h` - No Arduino.h, uses standard headers  
-- ✅ `include/device_id.h` - No Arduino.h, uses standard headers
-- ✅ `src/storage.cpp` - Uses `platform_storage_*()` abstractions
-- ✅ `src/usb_serial.cpp` - Uses `platform_serial_*()` abstractions
-- ✅ `src/tap_link_hal_arduino.cpp` - Uses `platform_gpio_*()` abstractions
-
-**Remaining:**
-- [ ] `src/main.cpp` - Still uses `setup()`/`loop()` (Arduino framework)
-  - Will be replaced with `main()` function during migration
-- [ ] Implementation files (`*_arduino.cpp`) - These are platform-specific by design
-  - Will be replaced with `*_hal.cpp` versions
-
-#### 5.2 C++ to C Considerations
-
-**Current:** Code is C++ (classes, virtual functions)
-
-**Options:**
-- **Option A:** Keep C++ (recommended for minimal changes)
-  - STM32CubeIDE supports C++ projects
-  - Change file extension: `.cpp` → `.cpp` (keep as is)
-  - Add C++ support in project settings
-- **Option B:** Convert to C (more work)
-  - Rewrite classes as structs + functions
-  - Not recommended unless required
-
-**Recommendation:** Keep C++ for faster migration.
-
-**Tasks:**
-- [ ] Verify C++ compiler is enabled in project settings
-- [ ] Ensure all `.cpp` files are included in build
-- [ ] Test compilation with C++ standard (C++11 or C++14)
-
-#### 5.3 Include Path Updates
-
-**Update includes:**
-- [ ] Change `#include "header.h"` paths if files moved
-- [ ] Update relative paths in `#include` statements
-- [ ] Verify all headers are in `Core/Inc/` or proper include paths
-
----
-
-## Dependencies Migration
-
-### Required Libraries/Components
-
-| Component | PlatformIO | STM32CubeIDE | Status |
-|-----------|------------|--------------|--------|
-| **Framework** | Arduino | HAL | ⚠️ Migration needed |
-| **USB CDC** | Arduino Serial | STM32 USB Device HAL | ⚠️ Migration needed |
-| **GPIO** | Arduino GPIO | STM32 HAL GPIO | ⚠️ Migration needed |
-| **Flash/EEPROM** | Arduino EEPROM | STM32 EEPROM Emulation | ⚠️ Migration needed |
-| **mbedTLS** | PlatformIO library | Manual integration | ⚠️ Migration needed |
-| **Timing** | Arduino timing | HAL timing | ⚠️ Migration needed |
-| **Device UID** | HAL (same) | HAL (same) | ✅ No change |
-
----
-
-## Build System Configuration
-
-### STM32CubeIDE Project Settings
-
-#### Compiler Settings
-- [ ] **C++ Standard:** C++11 or C++14
-- [ ] **Optimization:** -Os (size) or -O2 (speed)
-- [ ] **Debug Info:** -g (for debugging)
-
-#### Linker Settings
-- [ ] **Script:** Use default STM32L053R8 linker script (auto-generated)
-- [ ] **Heap/Stack:** Adjust if needed (default usually fine)
-
-#### Debug Settings
-- [ ] **Debugger:** ST-Link GDB Server
-- [ ] **Interface:** SWD
-- [ ] **Speed:** 4 MHz (or lower if issues)
-
----
-
-## Testing & Validation
-
-### Unit Testing Checklist
-
-#### Hardware-Specific Tests
-- [ ] **GPIO (Tap Link):** Test read/write, open-drain behavior
-- [ ] **USB CDC:** Test command reception/transmission
-- [ ] **Flash Storage:** Test read/write, power-loss recovery
-- [ ] **Device UID:** Verify correct reading
-- [ ] **Timing:** Verify `millis()`, `micros()`, delays are accurate
-
-#### Functional Tests
-- [ ] **Storage:** Test `begin()`, `saveNow()`, `clearAll()`, `addLink()`
-- [ ] **USB Commands:** Test all commands (`hello`, `get_state`, `clear`, `dump`, `provision_key`, `sign_state`)
-- [ ] **Tap Link:** Test connection protocol, state machine
-- [ ] **Crypto:** Test HMAC-SHA256 signing
-- [ ] **Power Management:** Test behavior during power cycles
-
-#### Integration Tests
-- [ ] **End-to-end:** Full tap link connection flow
-- [ ] **Provisioning:** Key provisioning and signing workflow
-- [ ] **Data Persistence:** Verify data survives power cycles
-- [ ] **Flash Wear:** Monitor flash write cycles (if possible)
-
-### Comparison Testing
-
-**Compare behavior with PlatformIO version:**
-- [ ] Command responses match
+- [ ] Command responses match PlatformIO version
 - [ ] Timing behavior matches
-- [ ] Storage format compatible (if possible)
 - [ ] Performance similar or better
 
 ---
 
 ## Timeline Estimate
 
-### Phase 1: Project Setup (2-4 hours)
-- Create STM32CubeIDE project
-- Configure CubeMX (clock, USB, GPIO)
-- Set up project structure
-
-### Phase 2: Core Migration (8-12 hours)
-- Replace Arduino framework with HAL
-- Implement timing functions
-- Migrate GPIO (tap link)
-- Migrate USB Serial
-
-### Phase 3: Storage Migration (4-6 hours)
-- Integrate EEPROM emulation
-- Migrate storage code
-- Test flash operations
-
-### Phase 4: mbedTLS Integration (2-4 hours)
-- Add mbedTLS library
-- Configure build settings
-- Test crypto functions
-
-### Phase 5: Build System (2-3 hours)
-- Configure build flags
-- Set up git hash injection
-- Fix compilation errors
-
-### Phase 6: Testing & Debugging (8-16 hours)
-- Hardware testing
-- Functional testing
-- Bug fixes
-- Performance optimization
-
-### **Total Estimate: 26-45 hours** (3-6 working days)
+| Phase | Duration |
+|-------|----------|
+| Project Setup | 2-4 hours |
+| Core Migration | 8-12 hours |
+| Storage Migration | 4-6 hours |
+| mbedTLS Integration | 2-4 hours |
+| Build System | 2-3 hours |
+| Testing & Debugging | 8-16 hours |
+| **Total** | **26-45 hours** |
 
 ---
 
 ## Risk Mitigation
 
-### Potential Issues
-
-1. **USB CDC Buffer Management**
-   - **Risk:** Blocking or data loss
-   - **Mitigation:** Implement proper ring buffers, test thoroughly
-
-2. **Flash Wear Leveling**
-   - **Risk:** Premature flash failure
-   - **Mitigation:** Use ST's EEPROM emulation library, monitor write cycles
-
-3. **Timing Accuracy**
-   - **Risk:** `micros()` precision issues
-   - **Mitigation:** Use DWT cycle counter, verify with oscilloscope
-
-4. **GPIO Open-Drain Behavior**
-   - **Risk:** Different behavior than Arduino
-   - **Mitigation:** Test with scope, verify pull-up/pull-down
-
-5. **mbedTLS Configuration**
-   - **Risk:** Memory or functionality issues
-   - **Mitigation:** Start with minimal config, test incrementally
+| Risk | Mitigation |
+|------|------------|
+| USB CDC buffer issues | Implement ring buffers, test thoroughly |
+| Flash wear | Use ST EEPROM emulation, monitor cycles |
+| Timing accuracy | Use DWT counter, verify with scope |
+| GPIO behavior | Test open-drain, verify pull-up/down |
+| mbedTLS config | Start minimal, test incrementally |
 
 ---
 
-## Post-Migration Checklist
+## Resources
 
-- [ ] All source files compile without errors
-- [ ] All source files compile without warnings (or documented warnings)
-- [ ] Project builds successfully
-- [ ] Code can be flashed to target hardware
-- [ ] Debugger connects and works
-- [ ] All functional tests pass
-- [ ] Performance meets requirements
-- [ ] Code is documented
-- [ ] Git repository is updated
-- [ ] Build instructions documented
-
----
-
-## Additional Resources
-
-### STM32 Documentation
 - [STM32L0 HAL Documentation](https://www.st.com/resource/en/user_manual/um1884-description-of-stm32l0-hal-and-lowlayer-drivers-stmicroelectronics.pdf)
-- [STM32L053R8 Datasheet](https://www.st.com/resource/en/datasheet/stm32l053r8.pdf)
 - [STM32CubeL0 Examples](https://www.st.com/en/embedded-software/stm32cubel0.html)
-
-### mbedTLS Documentation
 - [mbedTLS Documentation](https://mbed-tls.readthedocs.io/)
-- [mbedTLS GitHub](https://github.com/Mbed-TLS/mbedtls)
-
-### STM32CubeIDE Resources
-- [STM32CubeIDE User Guide](https://www.st.com/resource/en/user_manual/um2609-stm32cubeide-user-guide-stmicroelectronics.pdf)
-- [STM32CubeIDE Tutorials](https://www.st.com/en/development-tools/stm32cubeide.html#documentation)
 
 ---
 
-## Notes
-
-- Keep PlatformIO project as reference during migration
-- Test incrementally (don't migrate everything at once)
-- Use version control (git) to track changes
-- Document any deviations from this plan
-- Consider creating a branch for migration work
-
----
-
-**Document Version:** 1.0  
-**Last Updated:** [Current Date]  
-**Author:** Migration Plan Generator
+*Last Updated: January 2026*

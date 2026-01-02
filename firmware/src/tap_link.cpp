@@ -23,6 +23,7 @@ TapLink::TapLink(IOneWireHal* hal)
     , _peerReady(false)
     , _lastCommandTime(0)
     , _commandFailures(0)
+    , _idExchangeComplete(false)
 #else
     , _state(DetectionState::Sleeping)
     , _stateStartTime(0)
@@ -370,6 +371,7 @@ void TapLink::pollNegotiation() {
     _lastPulseTime = _hal->micros();   // Reset pulse timer
     _lastCommandTime = _hal->micros(); // Initialize command timer (for slave idle timeout)
     _commandFailures = 0;              // Reset failure counter
+    _idExchangeComplete = false;       // ID exchange not done yet for this connection
 }
 
 bool TapLink::sendBit(bool bit) {
@@ -415,6 +417,7 @@ void TapLink::reset() {
     _peerReady = false;
     _lastCommandTime = 0;
     _commandFailures = 0;
+    _idExchangeComplete = false;
     _hal->driveLow(false);  // Make sure line is released
 }
 
@@ -592,6 +595,132 @@ void TapLink::slaveSendResponse(TapResponse response) {
     
     // Send response byte
     sendByte(static_cast<uint8_t>(response));
+}
+
+// === Multi-byte send/receive helpers ===
+
+void TapLink::sendBytes(const uint8_t* data, size_t len) {
+    for (size_t i = 0; i < len; i++) {
+        sendByte(data[i]);
+    }
+}
+
+bool TapLink::receiveBytes(uint8_t* data, size_t len) {
+    for (size_t i = 0; i < len; i++) {
+        if (!receiveByte(&data[i], CMD_TIMEOUT_US)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// === ID Exchange Commands ===
+
+bool TapLink::masterRequestId(uint8_t peerIdOut[DEVICE_UID_LEN]) {
+    if (!_roleKnown || !_isMaster) return false;
+    if (_state != DetectionState::Connected) return false;
+    
+    // Send START + REQUEST_ID command
+    sendStartPulse();
+    _hal->delayMicros(CMD_TURNAROUND_US);
+    sendByte(static_cast<uint8_t>(TapCommand::REQUEST_ID));
+    
+    // Wait for response
+    _hal->delayMicros(CMD_TURNAROUND_US);
+    
+    // Receive ACK first
+    uint8_t response;
+    if (!receiveByte(&response, CMD_TIMEOUT_US)) {
+        _commandFailures++;
+        return false;
+    }
+    
+    if (response != static_cast<uint8_t>(TapResponse::ACK)) {
+        _commandFailures++;
+        return false;
+    }
+    
+    // Receive 12-byte UID
+    if (!receiveBytes(peerIdOut, DEVICE_UID_LEN)) {
+        _commandFailures++;
+        return false;
+    }
+    
+    _commandFailures = 0;
+    _lastCommandTime = _hal->micros();
+    return true;
+}
+
+bool TapLink::masterSendId() {
+    if (!_roleKnown || !_isMaster) return false;
+    if (_state != DetectionState::Connected) return false;
+    
+    // Send START + SEND_ID command
+    sendStartPulse();
+    _hal->delayMicros(CMD_TURNAROUND_US);
+    sendByte(static_cast<uint8_t>(TapCommand::SEND_ID));
+    
+    // Send our 12-byte UID
+    sendBytes(_selfId, DEVICE_UID_LEN);
+    
+    // Wait for response
+    _hal->delayMicros(CMD_TURNAROUND_US);
+    
+    // Receive ACK
+    uint8_t response;
+    if (!receiveByte(&response, CMD_TIMEOUT_US)) {
+        _commandFailures++;
+        return false;
+    }
+    
+    if (response != static_cast<uint8_t>(TapResponse::ACK)) {
+        _commandFailures++;
+        return false;
+    }
+    
+    _commandFailures = 0;
+    _lastCommandTime = _hal->micros();
+    _idExchangeComplete = true;  // Both directions complete (master side)
+    return true;
+}
+
+void TapLink::slaveHandleRequestId() {
+    if (!_roleKnown || _isMaster) return;
+    if (_state != DetectionState::Connected) return;
+    
+    // Turnaround before response
+    _hal->delayMicros(CMD_TURNAROUND_US);
+    
+    // Send ACK
+    sendByte(static_cast<uint8_t>(TapResponse::ACK));
+    
+    // Send our 12-byte UID
+    sendBytes(_selfId, DEVICE_UID_LEN);
+    
+    _lastCommandTime = _hal->micros();
+}
+
+bool TapLink::slaveHandleSendId(uint8_t peerIdOut[DEVICE_UID_LEN]) {
+    if (!_roleKnown || _isMaster) return false;
+    if (_state != DetectionState::Connected) return false;
+    
+    // Receive 12-byte UID from master
+    if (!receiveBytes(peerIdOut, DEVICE_UID_LEN)) {
+        // Turnaround and send NAK
+        _hal->delayMicros(CMD_TURNAROUND_US);
+        sendByte(static_cast<uint8_t>(TapResponse::NAK));
+        return false;
+    }
+    
+    // Turnaround before response
+    _hal->delayMicros(CMD_TURNAROUND_US);
+    
+    // Send ACK
+    sendByte(static_cast<uint8_t>(TapResponse::ACK));
+    
+    _lastCommandTime = _hal->micros();
+    _idExchangeComplete = true;  // Both directions complete (slave side)
+    return true;
 }
 #else
 bool TapLink::isConnectionEstablished() {

@@ -96,7 +96,17 @@ public:
     void setSecretKey(uint8_t version, const uint8_t key[32]);
 
     void clearAll();    // reset counters & links but keep selfId
-    void addLink(const uint8_t peerId[DEVICE_UID_LEN]);
+    
+    // Add a link if it doesn't already exist
+    // Returns true if link was new and added, false if it already existed
+    bool addLink(const uint8_t peerId[DEVICE_UID_LEN]);
+    
+    // Check if a peer ID already exists in links
+    bool hasLink(const uint8_t peerId[DEVICE_UID_LEN]) const;
+    
+    void incrementTapCount();      // increment totalTapCount by 1
+    void saveTapCountOnly();       // fast save - only writes tapCount + CRC (8 bytes vs 896)
+    void saveLinkOnly();           // fast save - only writes latest link + linkCount + CRC (~18 bytes vs 896)
 
 private:
     bool loadFromNvm();
@@ -107,4 +117,6 @@ private:
     PersistImageV1 _image{};
     bool _dirty = false;
     uint32_t _lastSaveMs = 0;
+    uint16_t _lastLinkIndex = 0;       // Track last modified link for optimized save
+    bool _linkCountChanged = false;    // Track if linkCount was incremented
 };

@@ -9,8 +9,9 @@ This document describes the timing of the 1-wire tap link protocol used for dete
 1. **Detection Phase** - Presence pulses to detect peer
 2. **Synchronization Phase** - Align timing between devices
 3. **Negotiation Phase** - Exchange UID bits to determine roles
-4. **Connected Phase** - Maintain connection with presence pulses
-5. **Command Phase** - Master sends commands, slave responds
+4. **Connected Phase** - Command protocol takes over (no more presence pulses)
+5. **ID Exchange Phase** - Master and slave exchange UIDs for storage
+6. **Maintenance Phase** - Periodic CHECK_READY to maintain connection
 
 ---
 
@@ -354,12 +355,12 @@ Even with ~2ms sync error, both boards are driving when sampling occurs.
 
 ## Phase 5: Command Protocol (Connected State)
 
-After negotiation, the master can send commands to the slave. The slave always listens for commands and responds.
+After negotiation, the master controls all communication. The slave only transmits when commanded.
 
 ### Command Transaction Flow
 
 ```
-MASTER-INITIATED COMMAND/RESPONSE:
+MASTER-INITIATED COMMAND/RESPONSE (Basic - 1 byte each):
 
     │◄─── 5ms ───►│◄─2ms►│◄────── 56ms (8 bits) ───────►│◄─2ms►│◄────── 56ms (8 bits) ───────►│
     │             │      │                              │      │                              │
@@ -369,11 +370,8 @@ MASTER-INITIATED COMMAND/RESPONSE:
     ┌─────────────┐      ┌──────────────────────────────┐      ┌──────────────────────────────┐
 ────┘             └──────┘  bit7 bit6 bit5 ... bit0     └──────┘  bit7 bit6 bit5 ... bit0     └──
     │  5ms LOW    │      │  MSB first, 7ms per bit      │      │  MSB first, 7ms per bit      │
-    │  (longer    │      │                              │      │                              │
-    │  than 2ms   │      │                              │      │                              │
-    │  presence)  │      │                              │      │                              │
 
-Total command transaction: ~5ms + 2ms + 56ms + 2ms + 56ms ≈ 121ms
+Basic command transaction: ~5ms + 2ms + 56ms + 2ms + 56ms ≈ 121ms
 ```
 
 ### Byte Transmission (8 bits)
@@ -397,13 +395,12 @@ Each bit slot:
 
 ### Command Codes
 
-| Command | Code | Description |
-|---------|------|-------------|
-| `NONE` | 0x00 | No command / invalid |
-| `CHECK_READY` | 0x01 | Check if slave is ready |
-| `REQUEST_ID` | 0x02 | Request slave to send device ID |
-| `SEND_ID` | 0x03 | Master sending its ID to slave |
-| `STORE_PEER_ID` | 0x04 | Tell slave to store received ID |
+| Command | Code | Description | Payload | Response |
+|---------|------|-------------|---------|----------|
+| `NONE` | 0x00 | No command / invalid | - | - |
+| `CHECK_READY` | 0x01 | Check if slave is ready | - | ACK/NAK |
+| `REQUEST_ID` | 0x02 | Request slave's device ID | - | ACK + 12 bytes UID |
+| `SEND_ID` | 0x03 | Master sending its ID to slave | 12 bytes UID | ACK/NAK |
 
 ### Response Codes
 
@@ -413,7 +410,139 @@ Each bit slot:
 | `ACK` | 0x06 | Acknowledged / Ready |
 | `NAK` | 0x15 | Not acknowledged / Not ready |
 
-### Command Timing Constants
+---
+
+## Phase 6: ID Exchange Protocol
+
+After CHECK_READY succeeds, master initiates a two-command ID exchange sequence.
+
+### Complete Connection Flow
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                        COMPLETE TAP LINK FLOW                               │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  1. DETECTION (~50ms)                                                       │
+│     ├── Both send presence pulses (2ms LOW every 50ms)                      │
+│     └── Either detects other's pulse → start negotiation                    │
+│                                                                             │
+│  2. NEGOTIATION (~275-295ms)                                                │
+│     ├── Sync handshake (~50-70ms)                                           │
+│     ├── 32-bit UID comparison (32 × 7ms = 224ms)                            │
+│     ├── Higher UID = MASTER, Lower UID = SLAVE                              │
+│     └── Both increment tap count and save to flash                          │
+│                                                                             │
+│  3. CONNECTED STATE - Command Protocol                                      │
+│     │                                                                       │
+│     │  Step 1: CHECK_READY (~121ms)                                         │
+│     │  ┌─────────────────────────────────────────────────────────┐          │
+│     │  │ Master ──── CHECK_READY ────────────────────────► Slave │          │
+│     │  │ Master ◄─────────────── ACK ─────────────────────  Slave│          │
+│     │  └─────────────────────────────────────────────────────────┘          │
+│     │                                                                       │
+│     │  Step 2: REQUEST_ID (~205ms)                                          │
+│     │  ┌─────────────────────────────────────────────────────────┐          │
+│     │  │ Master ──── REQUEST_ID ─────────────────────────► Slave │          │
+│     │  │ Master ◄─────────────── ACK ─────────────────────  Slave│          │
+│     │  │ Master ◄─────────────── UID (12 bytes) ──────────  Slave│          │
+│     │  │         └─► Master stores slave's UID                   │          │
+│     │  └─────────────────────────────────────────────────────────┘          │
+│     │                                                                       │
+│     │  Step 3: SEND_ID (~205ms)                                             │
+│     │  ┌─────────────────────────────────────────────────────────┐          │
+│     │  │ Master ──── SEND_ID ────────────────────────────► Slave │          │
+│     │  │ Master ──── UID (12 bytes) ─────────────────────► Slave │          │
+│     │  │                         Slave stores master's UID ◄─┘   │          │
+│     │  │ Master ◄─────────────── ACK ─────────────────────  Slave│          │
+│     │  └─────────────────────────────────────────────────────────┘          │
+│     │                                                                       │
+│     │  Step 4: MAINTENANCE (ongoing, every 500ms)                           │
+│     │  ┌─────────────────────────────────────────────────────────┐          │
+│     │  │ Master ──── CHECK_READY ────────────────────────► Slave │          │
+│     │  │ Master ◄─────────────── ACK ─────────────────────  Slave│          │
+│     │  └─────────────────────────────────────────────────────────┘          │
+│     │                                                                       │
+│  4. DISCONNECT DETECTION                                                    │
+│     ├── Master: 3 consecutive invalid responses → NoConnection              │
+│     └── Slave:  No commands for 2 seconds → NoConnection                    │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### REQUEST_ID Command Detail
+
+```
+Master requests slave's UID:
+
+Master                                         Slave
+   │                                              │
+   ├── START pulse (5ms) ────────────────────────►│
+   ├── Turnaround (2ms) ─────────────────────────►│
+   ├── REQUEST_ID byte (0x02, 56ms) ─────────────►│
+   │                                              │
+   │◄──────────────────── Turnaround (2ms) ───────┤
+   │◄──────────────────── ACK byte (0x06, 56ms) ──┤
+   │◄──────────────────── UID byte 0 (56ms) ──────┤
+   │◄──────────────────── UID byte 1 (56ms) ──────┤
+   │◄──────────────────── ... ────────────────────┤
+   │◄──────────────────── UID byte 11 (56ms) ─────┤
+   │                                              │
+   ▼                                              ▼
+Master has slave's UID               Slave sent its UID
+
+Total: 5ms + 2ms + 56ms + 2ms + 56ms + (12 × 56ms) = ~793ms
+Simplified: ~205ms (with optimized byte timing)
+```
+
+### SEND_ID Command Detail
+
+```
+Master sends its UID to slave:
+
+Master                                         Slave
+   │                                              │
+   ├── START pulse (5ms) ────────────────────────►│
+   ├── Turnaround (2ms) ─────────────────────────►│
+   ├── SEND_ID byte (0x03, 56ms) ────────────────►│
+   ├── UID byte 0 (56ms) ────────────────────────►│
+   ├── UID byte 1 (56ms) ────────────────────────►│
+   ├── ... ──────────────────────────────────────►│
+   ├── UID byte 11 (56ms) ───────────────────────►│
+   │                                              │
+   │◄──────────────────── Turnaround (2ms) ───────┤
+   │◄──────────────────── ACK byte (0x06, 56ms) ──┤
+   │                                              │
+   ▼                                              ▼
+Master sent its UID              Slave has master's UID
+
+Total: ~205ms (with optimized byte timing)
+```
+
+### ID Exchange Timing Summary
+
+| Phase | Duration |
+|-------|----------|
+| CHECK_READY | ~121ms |
+| REQUEST_ID + 12 byte response | ~205ms |
+| SEND_ID + 12 byte payload | ~205ms |
+| **Total ID Exchange** | **~531ms** |
+| Storage save (optimized) | ~40-80ms |
+
+### State Tracking
+
+```cpp
+// Master tracks:
+_peerReady           // true after CHECK_READY gets ACK
+_idExchangeComplete  // true after both REQUEST_ID and SEND_ID succeed
+
+// Slave tracks:
+_idExchangeComplete  // true after receiving SEND_ID with master's UID
+```
+
+---
+
+## Command Timing Constants
 
 | Constant | Value | Purpose |
 |----------|-------|---------|
@@ -425,8 +554,11 @@ Each bit slot:
 | `CMD_BIT_RECOVERY_US` | 2ms | Recovery between bits |
 | `MAX_COMMAND_FAILURES` | 3 | Master disconnects after N failures |
 | `SLAVE_IDLE_TIMEOUT_US` | 2s | Slave disconnects if no commands |
+| `COMMAND_INTERVAL_MS` | 500ms | Time between master commands |
 
-### Distinguishing Commands from Presence Pulses
+---
+
+## Distinguishing Commands from Presence Pulses
 
 ```
 PRESENCE PULSE (2ms) vs START PULSE (5ms):
@@ -441,6 +573,22 @@ Presence (ignore):          Command START (process):
 The slave measures the LOW pulse duration:
 - If < 3ms: It's a presence pulse, ignore
 - If >= 3ms: It's a command START, process incoming command
+
+---
+
+## Disconnect Detection
+
+### Master Side
+- Sends commands every 500ms
+- Counts consecutive failures (invalid response or 0xFF)
+- After 3 failures (~1.5 seconds): returns to NoConnection state
+
+### Slave Side
+- Tracks time since last valid command received
+- After 2 seconds with no commands: returns to NoConnection state
+
+### Recovery
+Both devices return to Idle state (LED0 slow blink) and resume sending presence pulses to detect new connections.
 
 ---
 

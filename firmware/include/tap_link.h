@@ -34,11 +34,10 @@
 
 enum class TapCommand : uint8_t {
     NONE = 0x00,           // No command / invalid
-    CHECK_READY = 0x01,    // Check if slave is ready
-    REQUEST_ID = 0x02,     // Request slave to send its device ID
-    SEND_ID = 0x03,        // Master sending its ID to slave
-    STORE_PEER_ID = 0x04,  // Tell slave to store received ID
-    // Add more commands as needed (0x05-0xFF available)
+    CHECK_READY = 0x01,    // Check if slave is ready (response: ACK/NAK)
+    REQUEST_ID = 0x02,     // Request slave to send its device ID (response: ACK + 12 bytes UID)
+    SEND_ID = 0x03,        // Master sending its ID to slave (payload: 12 bytes UID, response: ACK/NAK)
+    // Add more commands as needed (0x04-0xFF available)
 };
 
 enum class TapResponse : uint8_t {
@@ -114,6 +113,29 @@ public:
     
     // Clear peer ready flag (e.g., when starting new exchange)
     void clearPeerReady() { _peerReady = false; }
+    
+    // === ID Exchange Commands ===
+    
+    // Master: Request slave's UID (sends REQUEST_ID, receives ACK + 12 bytes)
+    // Returns true on success, fills peerIdOut with slave's UID
+    bool masterRequestId(uint8_t peerIdOut[DEVICE_UID_LEN]);
+    
+    // Master: Send master's UID to slave (sends SEND_ID + 12 bytes, receives ACK)
+    // Returns true if slave acknowledged
+    bool masterSendId();
+    
+    // Slave: Handle REQUEST_ID command (sends ACK + own UID)
+    void slaveHandleRequestId();
+    
+    // Slave: Handle SEND_ID command (receives 12 bytes UID, sends ACK)
+    // Returns true on success, fills peerIdOut with master's UID
+    bool slaveHandleSendId(uint8_t peerIdOut[DEVICE_UID_LEN]);
+    
+    // Check if ID exchange has been completed for this connection
+    bool isIdExchangeComplete() const { return _idExchangeComplete; }
+    
+    // Get own UID (for reference)
+    const uint8_t* getSelfId() const { return _selfId; }
 #else
     // Check if connection was just established
     bool isConnectionEstablished();
@@ -174,6 +196,8 @@ private:
     // Command protocol helpers
     void sendByte(uint8_t byte);
     bool receiveByte(uint8_t* byte, uint32_t timeoutUs);
+    void sendBytes(const uint8_t* data, size_t len);
+    bool receiveBytes(uint8_t* data, size_t len);
     void sendStartPulse();
     bool waitForLineHigh(uint32_t timeoutUs);
 #else
@@ -210,6 +234,7 @@ private:
     bool _peerReady;               // True when peer responded ACK to CHECK_READY
     uint32_t _lastCommandTime;     // For master: command rate limiting; for slave: last command received
     uint8_t _commandFailures;      // Count of consecutive command failures (master only)
+    bool _idExchangeComplete;      // True when both REQUEST_ID and SEND_ID have succeeded
 #else
     uint32_t _lastWakeTime;
     bool _connectionJustEstablished;

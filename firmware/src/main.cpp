@@ -138,6 +138,11 @@ void loop() {
             g_lastCommandTime = nowMs;  // Reset command timer
             // Negotiation complete! Role is now known
             // Master = higher UID, Slave = lower UID
+            
+            // Increment tap count for both master and slave
+            // Use optimized save (8 bytes vs 896) since tap can be very brief
+            gStorage.incrementTapCount();
+            gStorage.saveTapCountOnly();
         }
         
         // === Command Protocol Handling ===
@@ -145,13 +150,37 @@ void loop() {
             gTapLink->hasRole()) {
             
             if (gTapLink->isMaster()) {
-                // MASTER: Periodically send CHECK_READY command
+                // MASTER: Periodically send CHECK_READY, then do ID exchange
                 if (nowMs - g_lastCommandTime >= COMMAND_INTERVAL_MS) {
-                    TapResponse response = gTapLink->masterSendCommand(TapCommand::CHECK_READY);
-                    if (response == TapResponse::ACK) {
-                        // Slave is ready! LED0 will show PeerReady pattern
-                        // (handled in updateStatusDisplay)
+                    
+                    if (!gTapLink->isPeerReady()) {
+                        // Step 1: Check if slave is ready
+                        TapResponse response = gTapLink->masterSendCommand(TapCommand::CHECK_READY);
+                        // isPeerReady() is updated inside masterSendCommand
+                    } else if (!gTapLink->isIdExchangeComplete()) {
+                        // Step 2: ID Exchange (two commands, sequential)
+                        // Both must succeed for exchange to be complete
+                        
+                        // First: Request slave's ID
+                        uint8_t peerId[DEVICE_UID_LEN];
+                        if (gTapLink->masterRequestId(peerId)) {
+                            // Got slave's ID, now send ours
+                            if (gTapLink->masterSendId()) {
+                                // Both succeeded - store the link if new
+                                if (gStorage.addLink(peerId)) {
+                                    // New peer - save the link
+                                    gStorage.saveLinkOnly();
+                                }
+                                // If peer already existed, tap count was already incremented
+                                // after negotiation, no need to save link again
+                            }
+                        }
+                        // If either failed, will retry next interval
+                    } else {
+                        // Step 3: Ongoing - keep checking connection is alive
+                        gTapLink->masterSendCommand(TapCommand::CHECK_READY);
                     }
+                    
                     g_lastCommandTime = nowMs;
                 }
             } else {
@@ -165,9 +194,24 @@ void loop() {
                             break;
                         
                         case TapCommand::REQUEST_ID:
-                            // TODO: Send our device ID
-                            gTapLink->slaveSendResponse(TapResponse::ACK);
+                            // Master wants our ID - send ACK + UID
+                            gTapLink->slaveHandleRequestId();
                             break;
+                        
+                        case TapCommand::SEND_ID: {
+                            // Master is sending its ID - receive and store
+                            uint8_t peerId[DEVICE_UID_LEN];
+                            if (gTapLink->slaveHandleSendId(peerId)) {
+                                // Got master's ID, store if new
+                                if (gStorage.addLink(peerId)) {
+                                    // New peer - save the link
+                                    gStorage.saveLinkOnly();
+                                }
+                                // If peer already existed, tap count was already incremented
+                                // after negotiation, no need to save link again
+                            }
+                            break;
+                        }
                         
                         case TapCommand::NONE:
                             // Was just a presence pulse, ignore
