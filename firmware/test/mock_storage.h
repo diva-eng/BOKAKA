@@ -7,9 +7,63 @@
 // storage operations, etc. without needing actual flash.
 // =====================================================
 
-#include "i_storage.h"
-#include "storage.h"  // For PersistPayloadV1
+#include <stdint.h>
+#include <stddef.h>
 #include <string.h>
+
+// =====================================================
+// Minimal Definitions for Native Testing
+// =====================================================
+// When testing on native platform, we don't have the full
+// firmware headers. Define minimal versions here.
+
+#ifndef DEVICE_UID_LEN
+#define DEVICE_UID_LEN 12
+#endif
+
+// Minimal PersistPayloadV1 for testing
+struct LinkRecordV1 {
+    uint8_t peerId[DEVICE_UID_LEN];
+};
+
+struct PersistPayloadV1 {
+    uint8_t selfId[DEVICE_UID_LEN];
+    uint32_t totalTapCount;
+    uint16_t linkCount;
+    uint8_t keyVersion;
+    uint8_t reserved8;
+    
+    static const size_t MAX_LINKS = 64;
+    LinkRecordV1 links[MAX_LINKS];
+    
+    uint8_t secretKey[32];
+    uint32_t reserved32[16];
+};
+
+// Minimal IStorage interface for testing
+class IStorage {
+public:
+    virtual ~IStorage() = default;
+    virtual bool begin() = 0;
+    virtual void loop() = 0;
+    virtual bool saveNow() = 0;
+    virtual void markDirty() = 0;
+    virtual PersistPayloadV1& state() = 0;
+    virtual bool hasSecretKey() const = 0;
+    virtual const uint8_t* getSecretKey() const = 0;
+    virtual uint8_t getKeyVersion() const = 0;
+    virtual void setSecretKey(uint8_t version, const uint8_t key[32]) = 0;
+    virtual void clearAll() = 0;
+    virtual bool addLink(const uint8_t peerId[DEVICE_UID_LEN]) = 0;
+    virtual bool hasLink(const uint8_t peerId[DEVICE_UID_LEN]) const = 0;
+    virtual void incrementTapCount() = 0;
+    virtual void saveTapCountOnly() = 0;
+    virtual void saveLinkOnly() = 0;
+};
+
+// =====================================================
+// MockStorage Implementation
+// =====================================================
 
 class MockStorage : public IStorage {
 public:
@@ -173,4 +227,3 @@ private:
     uint8_t _keyVersion;
     bool _dirty;
 };
-
