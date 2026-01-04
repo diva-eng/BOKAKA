@@ -127,17 +127,17 @@ Total sync phase: ~50-70ms depending on relative timing
 
 ```
 BIT SLOT TIMING (one bit):
-                          
-    │◄────────────────────── 7ms total ──────────────────────►│
-    │                                                          │
-    │◄──────── 5ms DRIVE ────────►│◄─── 2ms RECOVERY ────►│
-    │                              │                           │
-    │      ▼ sample                │                           │
-    │      │ point                 │                           │
-    │◄ 2.5ms ►                     │                           │
-    │      │                       │                           │
-    │      ├─ 3x samples ─┤        │                           │
-    │      │ (majority vote)       │                           │
+
+    │◄────────────────────── 7ms total ────────────────────────►│
+    │                                                           │
+    │◄─────── 5ms DRIVE ──────────►│◄───── 2ms RECOVERY ───────►│
+    │                              │                            │
+    │      ▼ sample                │                            │
+    │      │ point                 │                            │
+    │◄ 2.5ms ►                     │                            │
+    │      │                       │                            │
+    │      ├─ 3x samples ─┤        │                            │
+    │      │ (majority vote)       │                            │
 
 
 Case 1: Board A sends '1', Board B sends '0' → A is MASTER
@@ -338,13 +338,13 @@ Board B: ──────────[sample]───────────
 The 5ms drive period with 2.5ms sample point provides tolerance for sync errors:
 
 ```
-    │◄──────── 5ms DRIVE ────────►│
-    │                              │
-    │      ▼ 2.5ms sample          │
-    │◄ 2.5ms ►◄───── 2.5ms ───────►│
-    │         │                    │
-    ├─────────┤ Safe overlap zone  │
-    │ ±2ms sync error tolerance    │
+    │◄──────── 5ms DRIVE ──────────►│
+    │                               │
+    │       ▼ 2.5ms sample          │
+    │◄ 2.5ms ►◄───── 2.5ms ────────►│
+    │         │                     │
+    ├─────────┤ Safe overlap zone   │
+    │ ±2ms sync error tolerance     │
 ```
 
 Even with ~2ms sync error, both boards are driving when sampling occurs.

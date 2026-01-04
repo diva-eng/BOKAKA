@@ -24,20 +24,20 @@ CR2032-powered with sleep/wake:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                      Application                             │
+│                         Application                         │
 ├─────────────────────────────────────────────────────────────┤
-│           ITapLink / ITapLinkEval / ITapLinkBattery         │
+│         ITapLink / ITapLinkEval / ITapLinkBattery           │
 ├─────────────────────────────────────────────────────────────┤
-│                        TapLink                               │
+│                           TapLink                           │
 │  ┌─────────────┐  ┌──────────────┐  ┌────────────────────┐  │
 │  │ Detection   │  │ Negotiation  │  │ Command Protocol   │  │
 │  │ State       │  │ (UID bits)   │  │ (Master/Slave)     │  │
 │  └─────────────┘  └──────────────┘  └────────────────────┘  │
 ├─────────────────────────────────────────────────────────────┤
-│                    IOneWireHal                               │
-│               (tap_link_hal_arduino.cpp)                     │
+│                         IOneWireHal                         │
+│                 (tap_link_hal_arduino.cpp)                  │
 ├─────────────────────────────────────────────────────────────┤
-│                   Platform GPIO HAL                          │
+│                      Platform GPIO HAL                      │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -49,8 +49,8 @@ CR2032-powered with sleep/wake:
           Device A                    Device B
              │                           │
    ┌─────────┴─────────┐       ┌─────────┴─────────┐
-   │  GPIO (Open-Drain)│───────│  GPIO (Open-Drain)│
-   │  + Internal Pull-up│       │  + Internal Pull-up│
+   │ GPIO (Open-Drain) │───────│ GPIO (Open-Drain) │
+   │ + Internal Pull-up│       │ + Internal Pull-up│
    └───────────────────┘       └───────────────────┘
 ```
 
@@ -99,12 +99,12 @@ Timing:
 - Pulse interval: 50ms (PULSE_INTERVAL_US)
 - Debounce time: 5ms (DEBOUNCE_TIME_US)
 
-         Device A sends pulse                Device B detects
+       Device A sends pulse                  Device B detects
               │                                    │
-    HIGH ─────┴────┐          ┌───────────────────┴───────── HIGH
+    HIGH ─────┴────┐          ┌────────────────────┴───────── HIGH
                    │          │
     LOW            └──────────┘
-              ◄───► 2ms
+                   ◄──────────► 2ms
 ```
 
 ## Role Negotiation Protocol
