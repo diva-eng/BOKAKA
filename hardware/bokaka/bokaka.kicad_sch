@@ -79,7 +79,7 @@
 	)
 	(wire
 		(pts
-			(xy 72.39 74.93) (xy 81.28 74.93)
+			(xy 72.39 101.6) (xy 92.71 101.6)
 		)
 		(stroke
 			(width 0)
@@ -166,16 +166,6 @@
 			(type default)
 		)
 		(uuid "4f3a7e40-fa20-4605-8f94-66b055200b3b")
-	)
-	(wire
-		(pts
-			(xy 81.28 74.93) (xy 81.28 101.6)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "5b5c8ab0-4529-40f3-951f-3a93e390b642")
 	)
 	(wire
 		(pts
@@ -489,16 +479,6 @@
 	)
 	(wire
 		(pts
-			(xy 81.28 101.6) (xy 92.71 101.6)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "faa99aff-0644-47cf-adc6-9e4e8cac3a3f")
-	)
-	(wire
-		(pts
 			(xy 83.82 44.45) (xy 83.82 92.71)
 		)
 		(stroke
@@ -750,8 +730,8 @@
 		)
 	)
 	(sheet
-		(at 35.56 60.96)
-		(size 36.83 16.51)
+		(at 46.99 90.17)
+		(size 25.4 13.97)
 		(exclude_from_sim no)
 		(in_bom yes)
 		(on_board yes)
@@ -766,7 +746,7 @@
 		)
 		(uuid "5a57696f-a948-45ee-a59e-a44500e0832e")
 		(property "Sheetname" "Power Supply"
-			(at 35.56 60.2484 0)
+			(at 46.99 89.4584 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -775,7 +755,7 @@
 			)
 		)
 		(property "Sheetfile" "power.kicad_sch"
-			(at 35.56 78.0546 0)
+			(at 46.99 104.7246 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -784,7 +764,7 @@
 			)
 		)
 		(pin "USB_DETECT" input
-			(at 72.39 74.93 0)
+			(at 72.39 101.6 0)
 			(uuid "70507275-c0ad-4036-8795-79c972875f3f")
 			(effects
 				(font

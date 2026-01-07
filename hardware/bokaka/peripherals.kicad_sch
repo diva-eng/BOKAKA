@@ -618,234 +618,6 @@
 			)
 			(embedded_fonts no)
 		)
-		(symbol "EasyEDA_Lib:TS-1187A-B-A-B"
-			(exclude_from_sim no)
-			(in_bom yes)
-			(on_board yes)
-			(property "Reference" "SW"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Value" ""
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-				)
-			)
-			(property "Footprint" "EasyEDA_Lib:SW-SMD_4P-L5.1-W5.1-P3.70-LS6.5-TL_H1.5"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Datasheet" "https://item.szlcsc.com/datasheet/TS-1187A-B-A-B/299976.html"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Description" "Circuit:SPST Actuator Style:Round Button Operating Force:1.6N Mounting Type:Surface Mount,Vertical Length:5.1mm Width:5.1mm Switch Height:1.5mm with Bracket:Without Bracket Contact Current:50mA Voltage Rating:12V Actuator/Cap Color:Gold With Lamp:No Life:"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Manufacturer Part" "TS-1187A-B-A-B"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Manufacturer" "XKB Connection(中国星坤)"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Supplier Part" "C318884"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "Supplier" "LCSC"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(property "LCSC Part Name" "5.1*5.1*1.5mm 立贴 轻触开关"
-				(at 0 0 0)
-				(effects
-					(font
-						(size 1.27 1.27)
-					)
-					(hide yes)
-				)
-			)
-			(symbol "TS-1187A-B-A-B_1_0"
-				(polyline
-					(pts
-						(xy -2.54 2.54) (xy 2.54 2.54)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -2.54 -5.08) (xy 2.54 -5.08)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy -0.508 0.762) (xy -1.27 -2.54)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 0.762) (xy 0 2.54)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(polyline
-					(pts
-						(xy 0 -3.302) (xy 0 -5.08)
-					)
-					(stroke
-						(width 0)
-						(type default)
-					)
-					(fill
-						(type none)
-					)
-				)
-				(pin unspecified line
-					(at -5.08 2.54 0)
-					(length 2.54)
-					(name "A"
-						(effects
-							(font
-								(size 0.0254 0.0254)
-							)
-						)
-					)
-					(number "1"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin unspecified line
-					(at -5.08 -5.08 0)
-					(length 2.54)
-					(name "C"
-						(effects
-							(font
-								(size 0.0254 0.0254)
-							)
-						)
-					)
-					(number "3"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin unspecified line
-					(at 5.08 2.54 180)
-					(length 2.54)
-					(name "B"
-						(effects
-							(font
-								(size 0.0254 0.0254)
-							)
-						)
-					)
-					(number "2"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-				(pin unspecified line
-					(at 5.08 -5.08 180)
-					(length 2.54)
-					(name "D"
-						(effects
-							(font
-								(size 0.0254 0.0254)
-							)
-						)
-					)
-					(number "4"
-						(effects
-							(font
-								(size 1.27 1.27)
-							)
-						)
-					)
-				)
-			)
-			(embedded_fonts no)
-		)
 		(symbol "Symbols:IS31FL3236A-QFLS2-TR"
 			(pin_names
 				(offset 1.016)
@@ -1845,6 +1617,234 @@
 			)
 			(embedded_fonts no)
 		)
+		(symbol "Symbols:TS-1187A-B-A-B"
+			(exclude_from_sim no)
+			(in_bom yes)
+			(on_board yes)
+			(property "Reference" "SW"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Value" ""
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+				)
+			)
+			(property "Footprint" "EasyEDA_Lib:SW-SMD_4P-L5.1-W5.1-P3.70-LS6.5-TL_H1.5"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Datasheet" "https://item.szlcsc.com/datasheet/TS-1187A-B-A-B/299976.html"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Description" "Circuit:SPST Actuator Style:Round Button Operating Force:1.6N Mounting Type:Surface Mount,Vertical Length:5.1mm Width:5.1mm Switch Height:1.5mm with Bracket:Without Bracket Contact Current:50mA Voltage Rating:12V Actuator/Cap Color:Gold With Lamp:No Life:"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Manufacturer Part" "TS-1187A-B-A-B"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Manufacturer" "XKB Connection(中国星坤)"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Supplier Part" "C318884"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "Supplier" "LCSC"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(property "LCSC Part Name" "5.1*5.1*1.5mm 立贴 轻触开关"
+				(at 0 0 0)
+				(effects
+					(font
+						(size 1.27 1.27)
+					)
+					(hide yes)
+				)
+			)
+			(symbol "TS-1187A-B-A-B_1_0"
+				(polyline
+					(pts
+						(xy -2.54 2.54) (xy 2.54 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -2.54 -5.08) (xy 2.54 -5.08)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy -0.508 0.762) (xy -1.27 -2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 0.762) (xy 0 2.54)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(polyline
+					(pts
+						(xy 0 -3.302) (xy 0 -5.08)
+					)
+					(stroke
+						(width 0)
+						(type default)
+					)
+					(fill
+						(type none)
+					)
+				)
+				(pin passive line
+					(at -5.08 2.54 0)
+					(length 2.54)
+					(name "A"
+						(effects
+							(font
+								(size 0.0254 0.0254)
+							)
+						)
+					)
+					(number "1"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at -5.08 -5.08 0)
+					(length 2.54)
+					(name "C"
+						(effects
+							(font
+								(size 0.0254 0.0254)
+							)
+						)
+					)
+					(number "3"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 5.08 2.54 180)
+					(length 2.54)
+					(name "B"
+						(effects
+							(font
+								(size 0.0254 0.0254)
+							)
+						)
+					)
+					(number "2"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+				(pin passive line
+					(at 5.08 -5.08 180)
+					(length 2.54)
+					(name "D"
+						(effects
+							(font
+								(size 0.0254 0.0254)
+							)
+						)
+					)
+					(number "4"
+						(effects
+							(font
+								(size 1.27 1.27)
+							)
+						)
+					)
+				)
+			)
+			(embedded_fonts no)
+		)
 		(symbol "power:+3V3"
 			(power)
 			(pin_numbers
@@ -2073,8 +2073,8 @@
 		)
 	)
 	(rectangle
-		(start 25.4 165.1)
-		(end 156.21 195.58)
+		(start 25.4 162.56)
+		(end 156.21 193.04)
 		(stroke
 			(width 0)
 			(type default)
@@ -2085,8 +2085,8 @@
 		(uuid 256134b2-54aa-4943-8f64-11cab39ad999)
 	)
 	(rectangle
-		(start 25.4 25.4)
-		(end 69.85 62.23)
+		(start 25.4 27.94)
+		(end 71.12 62.23)
 		(stroke
 			(width 0)
 			(type dash)
@@ -2097,8 +2097,8 @@
 		(uuid 833bb5eb-5a5d-46ef-8d3b-cdcd4cd926ae)
 	)
 	(rectangle
-		(start 21.59 83.82)
-		(end 67.31 160.02)
+		(start 25.4 71.12)
+		(end 71.12 147.32)
 		(stroke
 			(width 0)
 			(type default)
@@ -2133,7 +2133,7 @@
 		(uuid "21faf354-ab7c-4ff4-8d19-151263951082")
 	)
 	(junction
-		(at 38.1 132.08)
+		(at 41.91 119.38)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "25bcaa98-f6e1-4d1d-bc5d-d3301ebf3dd9")
@@ -2145,7 +2145,7 @@
 		(uuid "2a639a1b-d9d7-411d-8dce-15fa06892d2e")
 	)
 	(junction
-		(at 54.61 149.86)
+		(at 58.42 137.16)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "3cd656af-1cf8-4ecb-b6fd-31580fa044e7")
@@ -2157,7 +2157,7 @@
 		(uuid "3f3b8504-a3a0-47bd-8cb8-c5c5910ee54b")
 	)
 	(junction
-		(at 54.61 125.73)
+		(at 58.42 113.03)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "421b8f99-9f9f-4428-98aa-9645dd7b9cb3")
@@ -2307,7 +2307,7 @@
 		(uuid "aa995a49-60dc-4158-874a-15a14ca2bbd7")
 	)
 	(junction
-		(at 35.56 107.95)
+		(at 39.37 95.25)
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "b1c81396-2039-4307-9dfe-5013640110a9")
@@ -2378,6 +2378,30 @@
 		(color 0 0 0 0)
 		(uuid "feddd57b-b382-4bf1-8de3-3194dbea4cba")
 	)
+	(no_connect
+		(at 44.45 102.87)
+		(uuid "2eb652ce-5fa0-4e16-8edf-647d2bf884b9")
+	)
+	(no_connect
+		(at 54.61 95.25)
+		(uuid "92ee679a-d635-45e0-8cd5-974903911549")
+	)
+	(no_connect
+		(at 43.18 86.36)
+		(uuid "b5370ae3-b002-407e-8d4e-56234e2ce2e1")
+	)
+	(no_connect
+		(at 53.34 78.74)
+		(uuid "c7c6668e-6c82-4207-8772-8a262ffe7503")
+	)
+	(no_connect
+		(at 44.45 127)
+		(uuid "e6e25bb5-5dd9-4d57-bc66-091e5ea27bc9")
+	)
+	(no_connect
+		(at 54.61 119.38)
+		(uuid "f3d275d5-da47-477c-8dcb-827719c6beeb")
+	)
 	(wire
 		(pts
 			(xy 143.51 69.85) (xy 163.83 69.85)
@@ -2390,7 +2414,7 @@
 	)
 	(wire
 		(pts
-			(xy 35.56 107.95) (xy 35.56 116.84)
+			(xy 39.37 95.25) (xy 39.37 104.14)
 		)
 		(stroke
 			(width 0)
@@ -2490,7 +2514,7 @@
 	)
 	(wire
 		(pts
-			(xy 105.41 177.8) (xy 105.41 182.88)
+			(xy 105.41 175.26) (xy 105.41 180.34)
 		)
 		(stroke
 			(width 0)
@@ -2550,7 +2574,7 @@
 	)
 	(wire
 		(pts
-			(xy 54.61 115.57) (xy 54.61 125.73)
+			(xy 58.42 102.87) (xy 58.42 113.03)
 		)
 		(stroke
 			(width 0)
@@ -2720,7 +2744,7 @@
 	)
 	(wire
 		(pts
-			(xy 92.71 177.8) (xy 95.25 177.8)
+			(xy 92.71 175.26) (xy 95.25 175.26)
 		)
 		(stroke
 			(width 0)
@@ -2910,7 +2934,7 @@
 	)
 	(wire
 		(pts
-			(xy 54.61 99.06) (xy 54.61 102.87)
+			(xy 58.42 86.36) (xy 58.42 90.17)
 		)
 		(stroke
 			(width 0)
@@ -3000,7 +3024,7 @@
 	)
 	(wire
 		(pts
-			(xy 54.61 151.13) (xy 54.61 149.86)
+			(xy 58.42 138.43) (xy 58.42 137.16)
 		)
 		(stroke
 			(width 0)
@@ -3030,7 +3054,7 @@
 	)
 	(wire
 		(pts
-			(xy 35.56 107.95) (xy 40.64 107.95)
+			(xy 39.37 95.25) (xy 44.45 95.25)
 		)
 		(stroke
 			(width 0)
@@ -3270,7 +3294,7 @@
 	)
 	(wire
 		(pts
-			(xy 133.35 177.8) (xy 135.89 177.8)
+			(xy 133.35 175.26) (xy 135.89 175.26)
 		)
 		(stroke
 			(width 0)
@@ -3300,7 +3324,7 @@
 	)
 	(wire
 		(pts
-			(xy 54.61 139.7) (xy 54.61 149.86)
+			(xy 58.42 127) (xy 58.42 137.16)
 		)
 		(stroke
 			(width 0)
@@ -3410,7 +3434,7 @@
 	)
 	(wire
 		(pts
-			(xy 38.1 132.08) (xy 38.1 140.97)
+			(xy 41.91 119.38) (xy 41.91 128.27)
 		)
 		(stroke
 			(width 0)
@@ -3620,7 +3644,7 @@
 	)
 	(wire
 		(pts
-			(xy 25.4 91.44) (xy 39.37 91.44)
+			(xy 29.21 78.74) (xy 43.18 78.74)
 		)
 		(stroke
 			(width 0)
@@ -3670,7 +3694,7 @@
 	)
 	(wire
 		(pts
-			(xy 102.87 177.8) (xy 105.41 177.8)
+			(xy 102.87 175.26) (xy 105.41 175.26)
 		)
 		(stroke
 			(width 0)
@@ -4000,7 +4024,7 @@
 	)
 	(wire
 		(pts
-			(xy 41.91 184.15) (xy 41.91 180.34)
+			(xy 41.91 181.61) (xy 41.91 177.8)
 		)
 		(stroke
 			(width 0)
@@ -4380,7 +4404,7 @@
 	)
 	(wire
 		(pts
-			(xy 50.8 139.7) (xy 54.61 139.7)
+			(xy 54.61 127) (xy 58.42 127)
 		)
 		(stroke
 			(width 0)
@@ -4500,7 +4524,7 @@
 	)
 	(wire
 		(pts
-			(xy 45.72 175.26) (xy 29.21 175.26)
+			(xy 45.72 172.72) (xy 29.21 172.72)
 		)
 		(stroke
 			(width 0)
@@ -4590,7 +4614,7 @@
 	)
 	(wire
 		(pts
-			(xy 35.56 124.46) (xy 35.56 125.73)
+			(xy 39.37 111.76) (xy 39.37 113.03)
 		)
 		(stroke
 			(width 0)
@@ -4730,7 +4754,7 @@
 	)
 	(wire
 		(pts
-			(xy 54.61 125.73) (xy 54.61 127)
+			(xy 58.42 113.03) (xy 58.42 114.3)
 		)
 		(stroke
 			(width 0)
@@ -4950,7 +4974,7 @@
 	)
 	(wire
 		(pts
-			(xy 109.22 177.8) (xy 125.73 177.8)
+			(xy 109.22 175.26) (xy 125.73 175.26)
 		)
 		(stroke
 			(width 0)
@@ -4990,7 +5014,7 @@
 	)
 	(wire
 		(pts
-			(xy 85.09 177.8) (xy 68.58 177.8)
+			(xy 85.09 175.26) (xy 68.58 175.26)
 		)
 		(stroke
 			(width 0)
@@ -5010,7 +5034,7 @@
 	)
 	(wire
 		(pts
-			(xy 49.53 99.06) (xy 54.61 99.06)
+			(xy 53.34 86.36) (xy 58.42 86.36)
 		)
 		(stroke
 			(width 0)
@@ -5070,7 +5094,7 @@
 	)
 	(wire
 		(pts
-			(xy 40.64 132.08) (xy 38.1 132.08)
+			(xy 44.45 119.38) (xy 41.91 119.38)
 		)
 		(stroke
 			(width 0)
@@ -5140,7 +5164,7 @@
 	)
 	(wire
 		(pts
-			(xy 146.05 177.8) (xy 146.05 182.88)
+			(xy 146.05 175.26) (xy 146.05 180.34)
 		)
 		(stroke
 			(width 0)
@@ -5210,7 +5234,7 @@
 	)
 	(wire
 		(pts
-			(xy 50.8 115.57) (xy 54.61 115.57)
+			(xy 54.61 102.87) (xy 58.42 102.87)
 		)
 		(stroke
 			(width 0)
@@ -5280,7 +5304,7 @@
 	)
 	(wire
 		(pts
-			(xy 41.91 180.34) (xy 45.72 180.34)
+			(xy 41.91 177.8) (xy 45.72 177.8)
 		)
 		(stroke
 			(width 0)
@@ -5350,7 +5374,7 @@
 	)
 	(wire
 		(pts
-			(xy 25.4 107.95) (xy 35.56 107.95)
+			(xy 29.21 95.25) (xy 39.37 95.25)
 		)
 		(stroke
 			(width 0)
@@ -5390,7 +5414,7 @@
 	)
 	(wire
 		(pts
-			(xy 35.56 125.73) (xy 54.61 125.73)
+			(xy 39.37 113.03) (xy 58.42 113.03)
 		)
 		(stroke
 			(width 0)
@@ -5520,7 +5544,7 @@
 	)
 	(wire
 		(pts
-			(xy 38.1 149.86) (xy 54.61 149.86)
+			(xy 41.91 137.16) (xy 58.42 137.16)
 		)
 		(stroke
 			(width 0)
@@ -5560,7 +5584,7 @@
 	)
 	(wire
 		(pts
-			(xy 38.1 148.59) (xy 38.1 149.86)
+			(xy 41.91 135.89) (xy 41.91 137.16)
 		)
 		(stroke
 			(width 0)
@@ -5570,7 +5594,7 @@
 	)
 	(wire
 		(pts
-			(xy 38.1 132.08) (xy 25.4 132.08)
+			(xy 41.91 119.38) (xy 29.21 119.38)
 		)
 		(stroke
 			(width 0)
@@ -5650,7 +5674,7 @@
 	)
 	(wire
 		(pts
-			(xy 143.51 177.8) (xy 146.05 177.8)
+			(xy 143.51 175.26) (xy 146.05 175.26)
 		)
 		(stroke
 			(width 0)
@@ -5859,7 +5883,7 @@
 		(uuid "30ec7f14-9168-4e3d-b69d-678b9ffd89a2")
 	)
 	(label "USR_BTN0"
-		(at 25.4 107.95 0)
+		(at 29.21 95.25 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5889,7 +5913,7 @@
 		(uuid "74a0d0a8-d8d4-400e-b7c9-e5464e739f0b")
 	)
 	(label "LED_STATUS"
-		(at 68.58 177.8 0)
+		(at 68.58 175.26 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5949,7 +5973,7 @@
 		(uuid "c93288de-3dd1-4e79-968a-a8ca0589c42c")
 	)
 	(label "~{BOOT_SEL}"
-		(at 25.4 91.44 0)
+		(at 29.21 78.74 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5959,7 +5983,7 @@
 		(uuid "cdbf4ebd-4971-46ce-801f-61fea7092a9c")
 	)
 	(label "BUZZ_PWM"
-		(at 29.21 175.26 0)
+		(at 29.21 172.72 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -5989,7 +6013,7 @@
 		(uuid "db7048e1-bb81-4592-87d3-6d4f3d736273")
 	)
 	(label "LED_DEBUG"
-		(at 109.22 177.8 0)
+		(at 109.22 175.26 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6009,7 +6033,7 @@
 		(uuid "eb34f0a8-47c3-4009-98ab-65313ebfa07e")
 	)
 	(label "USR_BTN1"
-		(at 25.4 132.08 0)
+		(at 29.21 119.38 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -6164,7 +6188,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 194.31 41.91 0)
 			(effects
 				(font
@@ -6223,7 +6247,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 54.61 127 0)
+		(at 58.42 114.3 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -6232,7 +6256,7 @@
 		(fields_autoplaced yes)
 		(uuid "0b36c6e6-2c40-44f0-9bb7-9426335d1922")
 		(property "Reference" "#PWR023"
-			(at 54.61 133.35 0)
+			(at 58.42 120.65 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6241,7 +6265,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 54.61 132.08 0)
+			(at 58.42 119.38 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6249,7 +6273,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 54.61 127 0)
+			(at 58.42 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6258,7 +6282,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 54.61 127 0)
+			(at 58.42 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6267,7 +6291,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 54.61 127 0)
+			(at 58.42 114.3 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -6319,7 +6343,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 217.17 132.08 0)
 			(effects
 				(font
@@ -6402,7 +6426,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 217.17 85.09 0)
 			(effects
 				(font
@@ -6536,125 +6560,6 @@
 		)
 	)
 	(symbol
-		(lib_id "EasyEDA_Lib:TS-1187A-B-A-B")
-		(at 44.45 93.98 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "1b109e75-d778-4238-82db-fb439e2a67af")
-		(property "Reference" "SW1"
-			(at 44.45 86.36 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "~"
-			(at 44.45 88.9 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "EasyEDA_Lib:SW-SMD_4P-L5.1-W5.1-P3.70-LS6.5-TL_H1.5"
-			(at 44.45 93.98 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://item.szlcsc.com/datasheet/TS-1187A-B-A-B/299976.html"
-			(at 44.45 93.98 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Circuit:SPST Actuator Style:Round Button Operating Force:1.6N Mounting Type:Surface Mount,Vertical Length:5.1mm Width:5.1mm Switch Height:1.5mm with Bracket:Without Bracket Contact Current:50mA Voltage Rating:12V Actuator/Cap Color:Gold With Lamp:No Life:"
-			(at 44.45 93.98 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer Part" "TS-1187A-B-A-B"
-			(at 44.45 93.98 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer" "XKB Connection(中国星坤)"
-			(at 44.45 93.98 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Supplier Part" "C318884"
-			(at 44.45 93.98 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Supplier" "LCSC"
-			(at 44.45 93.98 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "LCSC Part Name" "5.1*5.1*1.5mm 立贴 轻触开关"
-			(at 44.45 93.98 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "3"
-			(uuid "374fd73a-6204-4c08-80ef-dc37e8466273")
-		)
-		(pin "1"
-			(uuid "d4858fe3-ee36-4674-99f1-73bd95b11820")
-		)
-		(pin "4"
-			(uuid "7bb20177-49d8-4b6e-a41f-8382b4895f3a")
-		)
-		(pin "2"
-			(uuid "6ba57db7-e6c7-4b1c-b740-faa094c50f29")
-		)
-		(instances
-			(project ""
-				(path "/d8e340c0-2cae-427d-93e9-6fca5a11389e/df3f2b6f-c2ea-42f8-be18-5fedc2357726"
-					(reference "SW1")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:LED")
 		(at 171.45 41.91 0)
 		(unit 1)
@@ -6679,7 +6584,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 171.45 41.91 0)
 			(effects
 				(font
@@ -6762,7 +6667,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 228.6 85.09 0)
 			(effects
 				(font
@@ -6896,6 +6801,125 @@
 		)
 	)
 	(symbol
+		(lib_id "Symbols:TS-1187A-B-A-B")
+		(at 49.53 121.92 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "2c713924-f883-400c-8f20-204ee9c51341")
+		(property "Reference" "SW3"
+			(at 49.53 114.3 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "~"
+			(at 49.53 116.84 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "EasyEDA_Lib:SW-SMD_4P-L5.1-W5.1-P3.70-LS6.5-TL_H1.5"
+			(at 49.53 121.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://item.szlcsc.com/datasheet/TS-1187A-B-A-B/299976.html"
+			(at 49.53 121.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Circuit:SPST Actuator Style:Round Button Operating Force:1.6N Mounting Type:Surface Mount,Vertical Length:5.1mm Width:5.1mm Switch Height:1.5mm with Bracket:Without Bracket Contact Current:50mA Voltage Rating:12V Actuator/Cap Color:Gold With Lamp:No Life:"
+			(at 49.53 121.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer Part" "TS-1187A-B-A-B"
+			(at 49.53 121.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "XKB Connection(中国星坤)"
+			(at 49.53 121.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Supplier Part" "C318884"
+			(at 49.53 121.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Supplier" "LCSC"
+			(at 49.53 121.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC Part Name" "5.1*5.1*1.5mm 立贴 轻触开关"
+			(at 49.53 121.92 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "3"
+			(uuid "788e3d5a-cf77-4859-9468-442dab807cd3")
+		)
+		(pin "4"
+			(uuid "54a132ee-0e38-4426-99dc-3b937f2d5ef1")
+		)
+		(pin "2"
+			(uuid "ecc48abf-10e9-4105-b7b7-6281e4a395c1")
+		)
+		(pin "1"
+			(uuid "62b873a5-81f4-4a06-b89f-f330dc3c3d73")
+		)
+		(instances
+			(project "bokaka"
+				(path "/d8e340c0-2cae-427d-93e9-6fca5a11389e/df3f2b6f-c2ea-42f8-be18-5fedc2357726"
+					(reference "SW3")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:LED")
 		(at 194.31 132.08 0)
 		(unit 1)
@@ -6921,7 +6945,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 194.31 132.08 0)
 			(effects
 				(font
@@ -7004,7 +7028,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 182.88 85.09 0)
 			(effects
 				(font
@@ -7063,7 +7087,7 @@
 	)
 	(symbol
 		(lib_id "Device:LED")
-		(at 88.9 177.8 0)
+		(at 88.9 175.26 0)
 		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
@@ -7073,7 +7097,7 @@
 		(fields_autoplaced yes)
 		(uuid "316eb9eb-8180-4aa0-909f-7ab499749a2a")
 		(property "Reference" "D1"
-			(at 90.4875 171.45 0)
+			(at 90.4875 168.91 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7081,15 +7105,15 @@
 			)
 		)
 		(property "Value" "LED"
-			(at 90.4875 173.99 0)
+			(at 90.4875 171.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Footprint" ""
-			(at 88.9 177.8 0)
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
+			(at 88.9 175.26 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7098,7 +7122,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 88.9 177.8 0)
+			(at 88.9 175.26 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7107,7 +7131,7 @@
 			)
 		)
 		(property "Description" "Light emitting diode"
-			(at 88.9 177.8 0)
+			(at 88.9 175.26 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7116,7 +7140,7 @@
 			)
 		)
 		(property "Sim.Pins" "1=K 2=A"
-			(at 88.9 177.8 0)
+			(at 88.9 175.26 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7171,7 +7195,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 194.31 85.09 0)
 			(effects
 				(font
@@ -7230,7 +7254,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 54.61 102.87 0)
+		(at 58.42 90.17 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -7239,7 +7263,7 @@
 		(fields_autoplaced yes)
 		(uuid "32be7ea3-8fb0-4c74-aada-8f9674968f35")
 		(property "Reference" "#PWR022"
-			(at 54.61 109.22 0)
+			(at 58.42 96.52 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7248,7 +7272,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 54.61 107.95 0)
+			(at 58.42 95.25 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7256,7 +7280,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 54.61 102.87 0)
+			(at 58.42 90.17 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7265,7 +7289,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 54.61 102.87 0)
+			(at 58.42 90.17 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7274,7 +7298,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 54.61 102.87 0)
+			(at 58.42 90.17 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7326,7 +7350,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 171.45 85.09 0)
 			(effects
 				(font
@@ -7385,7 +7409,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 139.7 177.8 90)
+		(at 139.7 175.26 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -7394,7 +7418,7 @@
 		(fields_autoplaced yes)
 		(uuid "403d3e81-1d9d-4db8-831e-4e610553ba0a")
 		(property "Reference" "R6"
-			(at 139.7 171.45 90)
+			(at 139.7 168.91 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7402,7 +7426,7 @@
 			)
 		)
 		(property "Value" "1k5"
-			(at 139.7 173.99 90)
+			(at 139.7 171.45 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7410,7 +7434,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
-			(at 139.7 179.578 90)
+			(at 139.7 177.038 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7419,7 +7443,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 139.7 177.8 0)
+			(at 139.7 175.26 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7428,7 +7452,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 139.7 177.8 0)
+			(at 139.7 175.26 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -7549,7 +7573,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 251.46 85.09 0)
 			(effects
 				(font
@@ -7607,125 +7631,6 @@
 		)
 	)
 	(symbol
-		(lib_id "EasyEDA_Lib:TS-1187A-B-A-B")
-		(at 45.72 134.62 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "46db631e-8e2b-474b-802e-402a9c306247")
-		(property "Reference" "SW3"
-			(at 45.72 127 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "~"
-			(at 45.72 129.54 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "EasyEDA_Lib:SW-SMD_4P-L5.1-W5.1-P3.70-LS6.5-TL_H1.5"
-			(at 45.72 134.62 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://item.szlcsc.com/datasheet/TS-1187A-B-A-B/299976.html"
-			(at 45.72 134.62 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Circuit:SPST Actuator Style:Round Button Operating Force:1.6N Mounting Type:Surface Mount,Vertical Length:5.1mm Width:5.1mm Switch Height:1.5mm with Bracket:Without Bracket Contact Current:50mA Voltage Rating:12V Actuator/Cap Color:Gold With Lamp:No Life:"
-			(at 45.72 134.62 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer Part" "TS-1187A-B-A-B"
-			(at 45.72 134.62 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer" "XKB Connection(中国星坤)"
-			(at 45.72 134.62 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Supplier Part" "C318884"
-			(at 45.72 134.62 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Supplier" "LCSC"
-			(at 45.72 134.62 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "LCSC Part Name" "5.1*5.1*1.5mm 立贴 轻触开关"
-			(at 45.72 134.62 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "3"
-			(uuid "abd6f3d3-25e2-4b04-b378-908223be645a")
-		)
-		(pin "1"
-			(uuid "bc945e34-121b-4564-89b1-2b1c51d86080")
-		)
-		(pin "4"
-			(uuid "7f06cd07-ffcb-424d-b210-44c8f5e5ceb4")
-		)
-		(pin "2"
-			(uuid "14846bda-789e-4778-8129-403ceaf530c4")
-		)
-		(instances
-			(project "bokaka"
-				(path "/d8e340c0-2cae-427d-93e9-6fca5a11389e/df3f2b6f-c2ea-42f8-be18-5fedc2357726"
-					(reference "SW3")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:LED")
 		(at 262.89 41.91 0)
 		(unit 1)
@@ -7751,7 +7656,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 262.89 41.91 0)
 			(effects
 				(font
@@ -7834,7 +7739,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 205.74 132.08 0)
 			(effects
 				(font
@@ -7917,7 +7822,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 205.74 41.91 0)
 			(effects
 				(font
@@ -8000,7 +7905,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 205.74 85.09 0)
 			(effects
 				(font
@@ -8059,7 +7964,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 38.1 144.78 0)
+		(at 41.91 132.08 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8068,7 +7973,7 @@
 		(fields_autoplaced yes)
 		(uuid "55c8ccaf-745f-465e-9d99-aae5db17b5dc")
 		(property "Reference" "C22"
-			(at 41.91 143.5099 0)
+			(at 45.72 130.8099 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8077,7 +7982,7 @@
 			)
 		)
 		(property "Value" "0.1u"
-			(at 41.91 146.0499 0)
+			(at 45.72 133.3499 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8086,7 +7991,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
-			(at 39.0652 148.59 0)
+			(at 42.8752 135.89 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8095,7 +8000,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 38.1 144.78 0)
+			(at 41.91 132.08 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8104,7 +8009,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
-			(at 38.1 144.78 0)
+			(at 41.91 132.08 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8225,7 +8130,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 240.03 85.09 0)
 			(effects
 				(font
@@ -8284,7 +8189,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 105.41 182.88 0)
+		(at 105.41 180.34 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -8292,7 +8197,7 @@
 		(dnp no)
 		(uuid "6afc6c8f-4fe3-4830-bb44-8990a63275de")
 		(property "Reference" "#PWR025"
-			(at 105.41 189.23 0)
+			(at 105.41 186.69 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8301,7 +8206,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 105.41 187.96 0)
+			(at 105.41 185.42 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8309,7 +8214,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 105.41 182.88 0)
+			(at 105.41 180.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8318,7 +8223,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 105.41 182.88 0)
+			(at 105.41 180.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8327,7 +8232,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 105.41 182.88 0)
+			(at 105.41 180.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -8379,7 +8284,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 274.32 157.48 0)
 			(effects
 				(font
@@ -8462,7 +8367,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 217.17 41.91 0)
 			(effects
 				(font
@@ -8595,6 +8500,125 @@
 		)
 	)
 	(symbol
+		(lib_id "Symbols:TS-1187A-B-A-B")
+		(at 49.53 97.79 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "7d1ffaa0-deed-46e4-b85a-38872d29057e")
+		(property "Reference" "SW2"
+			(at 49.53 90.17 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "~"
+			(at 49.53 92.71 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "EasyEDA_Lib:SW-SMD_4P-L5.1-W5.1-P3.70-LS6.5-TL_H1.5"
+			(at 49.53 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://item.szlcsc.com/datasheet/TS-1187A-B-A-B/299976.html"
+			(at 49.53 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Circuit:SPST Actuator Style:Round Button Operating Force:1.6N Mounting Type:Surface Mount,Vertical Length:5.1mm Width:5.1mm Switch Height:1.5mm with Bracket:Without Bracket Contact Current:50mA Voltage Rating:12V Actuator/Cap Color:Gold With Lamp:No Life:"
+			(at 49.53 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer Part" "TS-1187A-B-A-B"
+			(at 49.53 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "XKB Connection(中国星坤)"
+			(at 49.53 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Supplier Part" "C318884"
+			(at 49.53 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Supplier" "LCSC"
+			(at 49.53 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC Part Name" "5.1*5.1*1.5mm 立贴 轻触开关"
+			(at 49.53 97.79 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "3"
+			(uuid "f772040a-47a0-469a-b2bc-6f6e0773cd99")
+		)
+		(pin "4"
+			(uuid "2a54a9c1-f4c7-4940-93a2-954f7609a086")
+		)
+		(pin "2"
+			(uuid "84fac117-ac48-464b-90bc-3b42cbfaf2b7")
+		)
+		(pin "1"
+			(uuid "1c83bc35-e925-41dd-8e91-1421bd3b387c")
+		)
+		(instances
+			(project "bokaka"
+				(path "/d8e340c0-2cae-427d-93e9-6fca5a11389e/df3f2b6f-c2ea-42f8-be18-5fedc2357726"
+					(reference "SW2")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:LED")
 		(at 262.89 110.49 0)
 		(unit 1)
@@ -8620,7 +8644,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 262.89 110.49 0)
 			(effects
 				(font
@@ -8703,7 +8727,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 228.6 132.08 0)
 			(effects
 				(font
@@ -8786,7 +8810,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 274.32 85.09 0)
 			(effects
 				(font
@@ -8941,7 +8965,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 262.89 85.09 0)
 			(effects
 				(font
@@ -9024,7 +9048,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 251.46 132.08 0)
 			(effects
 				(font
@@ -9083,7 +9107,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 41.91 184.15 0)
+		(at 41.91 181.61 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -9092,7 +9116,7 @@
 		(fields_autoplaced yes)
 		(uuid "9c990979-0e1e-4d7b-a656-202109354bfa")
 		(property "Reference" "#PWR021"
-			(at 41.91 190.5 0)
+			(at 41.91 187.96 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9101,7 +9125,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 41.91 189.23 0)
+			(at 41.91 186.69 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9109,7 +9133,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 41.91 184.15 0)
+			(at 41.91 181.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9118,7 +9142,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 41.91 184.15 0)
+			(at 41.91 181.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9127,7 +9151,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 41.91 184.15 0)
+			(at 41.91 181.61 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9155,7 +9179,7 @@
 	)
 	(symbol
 		(lib_id "Device:Buzzer")
-		(at 48.26 177.8 0)
+		(at 48.26 175.26 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -9164,7 +9188,7 @@
 		(fields_autoplaced yes)
 		(uuid "9d6222f4-f6b1-4325-a314-84cf8bafd343")
 		(property "Reference" "BZ1"
-			(at 52.07 176.5299 0)
+			(at 52.07 173.9899 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9173,7 +9197,7 @@
 			)
 		)
 		(property "Value" "Buzzer"
-			(at 52.07 179.0699 0)
+			(at 52.07 176.5299 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9182,7 +9206,7 @@
 			)
 		)
 		(property "Footprint" "Footprints:CUI_CPT-9019S-SMT"
-			(at 47.625 175.26 90)
+			(at 47.625 172.72 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9191,7 +9215,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 47.625 175.26 90)
+			(at 47.625 172.72 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9200,7 +9224,7 @@
 			)
 		)
 		(property "Description" "Buzzer, polarized"
-			(at 48.26 177.8 0)
+			(at 48.26 175.26 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9255,7 +9279,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 171.45 132.08 0)
 			(effects
 				(font
@@ -9404,7 +9428,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 240.03 41.91 0)
 			(effects
 				(font
@@ -9487,7 +9511,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 274.32 41.91 0)
 			(effects
 				(font
@@ -9545,8 +9569,127 @@
 		)
 	)
 	(symbol
+		(lib_id "Symbols:TS-1187A-B-A-B")
+		(at 48.26 81.28 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "bf05e002-0c8c-44d0-a839-5e91798fe732")
+		(property "Reference" "SW1"
+			(at 48.26 73.66 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Value" "~"
+			(at 48.26 76.2 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" "EasyEDA_Lib:SW-SMD_4P-L5.1-W5.1-P3.70-LS6.5-TL_H1.5"
+			(at 48.26 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "https://item.szlcsc.com/datasheet/TS-1187A-B-A-B/299976.html"
+			(at 48.26 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Circuit:SPST Actuator Style:Round Button Operating Force:1.6N Mounting Type:Surface Mount,Vertical Length:5.1mm Width:5.1mm Switch Height:1.5mm with Bracket:Without Bracket Contact Current:50mA Voltage Rating:12V Actuator/Cap Color:Gold With Lamp:No Life:"
+			(at 48.26 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer Part" "TS-1187A-B-A-B"
+			(at 48.26 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Manufacturer" "XKB Connection(中国星坤)"
+			(at 48.26 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Supplier Part" "C318884"
+			(at 48.26 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Supplier" "LCSC"
+			(at 48.26 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "LCSC Part Name" "5.1*5.1*1.5mm 立贴 轻触开关"
+			(at 48.26 81.28 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "3"
+			(uuid "e033f53f-3a19-4256-92f2-f138bfa95528")
+		)
+		(pin "4"
+			(uuid "e0b6b284-2adc-43df-a10a-a454ed60f057")
+		)
+		(pin "2"
+			(uuid "06745af8-7b06-4e1d-919c-e96f9c14fb7c")
+		)
+		(pin "1"
+			(uuid "a92d6306-5362-4982-b670-cb38af543ebb")
+		)
+		(instances
+			(project ""
+				(path "/d8e340c0-2cae-427d-93e9-6fca5a11389e/df3f2b6f-c2ea-42f8-be18-5fedc2357726"
+					(reference "SW1")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "Device:LED")
-		(at 129.54 177.8 0)
+		(at 129.54 175.26 0)
 		(mirror y)
 		(unit 1)
 		(exclude_from_sim no)
@@ -9556,7 +9699,7 @@
 		(fields_autoplaced yes)
 		(uuid "c0b67f96-f22b-48e3-b004-260b8840af23")
 		(property "Reference" "D2"
-			(at 131.1275 171.45 0)
+			(at 131.1275 168.91 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9564,15 +9707,15 @@
 			)
 		)
 		(property "Value" "LED"
-			(at 131.1275 173.99 0)
+			(at 131.1275 171.45 0)
 			(effects
 				(font
 					(size 1.27 1.27)
 				)
 			)
 		)
-		(property "Footprint" ""
-			(at 129.54 177.8 0)
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
+			(at 129.54 175.26 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9581,7 +9724,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 129.54 177.8 0)
+			(at 129.54 175.26 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9590,7 +9733,7 @@
 			)
 		)
 		(property "Description" "Light emitting diode"
-			(at 129.54 177.8 0)
+			(at 129.54 175.26 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9599,7 +9742,7 @@
 			)
 		)
 		(property "Sim.Pins" "1=K 2=A"
-			(at 129.54 177.8 0)
+			(at 129.54 175.26 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -9972,7 +10115,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 240.03 132.08 0)
 			(effects
 				(font
@@ -10055,7 +10198,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 251.46 110.49 0)
 			(effects
 				(font
@@ -10114,7 +10257,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 146.05 182.88 0)
+		(at 146.05 180.34 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -10123,7 +10266,7 @@
 		(fields_autoplaced yes)
 		(uuid "ce586be6-132f-4083-bf92-d4c7adebd962")
 		(property "Reference" "#PWR027"
-			(at 146.05 189.23 0)
+			(at 146.05 186.69 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10132,7 +10275,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 146.05 187.96 0)
+			(at 146.05 185.42 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10140,7 +10283,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 146.05 182.88 0)
+			(at 146.05 180.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10149,7 +10292,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 146.05 182.88 0)
+			(at 146.05 180.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10158,7 +10301,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 146.05 182.88 0)
+			(at 146.05 180.34 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10210,7 +10353,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 251.46 41.91 0)
 			(effects
 				(font
@@ -10268,125 +10411,6 @@
 		)
 	)
 	(symbol
-		(lib_id "EasyEDA_Lib:TS-1187A-B-A-B")
-		(at 45.72 110.49 0)
-		(unit 1)
-		(exclude_from_sim no)
-		(in_bom yes)
-		(on_board yes)
-		(dnp no)
-		(fields_autoplaced yes)
-		(uuid "e06d726a-f556-47cd-86ce-905dd6539550")
-		(property "Reference" "SW2"
-			(at 45.72 102.87 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Value" "~"
-			(at 45.72 105.41 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-			)
-		)
-		(property "Footprint" "EasyEDA_Lib:SW-SMD_4P-L5.1-W5.1-P3.70-LS6.5-TL_H1.5"
-			(at 45.72 110.49 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Datasheet" "https://item.szlcsc.com/datasheet/TS-1187A-B-A-B/299976.html"
-			(at 45.72 110.49 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Description" "Circuit:SPST Actuator Style:Round Button Operating Force:1.6N Mounting Type:Surface Mount,Vertical Length:5.1mm Width:5.1mm Switch Height:1.5mm with Bracket:Without Bracket Contact Current:50mA Voltage Rating:12V Actuator/Cap Color:Gold With Lamp:No Life:"
-			(at 45.72 110.49 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer Part" "TS-1187A-B-A-B"
-			(at 45.72 110.49 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Manufacturer" "XKB Connection(中国星坤)"
-			(at 45.72 110.49 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Supplier Part" "C318884"
-			(at 45.72 110.49 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "Supplier" "LCSC"
-			(at 45.72 110.49 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(property "LCSC Part Name" "5.1*5.1*1.5mm 立贴 轻触开关"
-			(at 45.72 110.49 0)
-			(effects
-				(font
-					(size 1.27 1.27)
-				)
-				(hide yes)
-			)
-		)
-		(pin "3"
-			(uuid "1d758ce2-ffaa-4417-b37a-f08228bb3621")
-		)
-		(pin "1"
-			(uuid "141ed10f-efd6-4a64-94cf-8052aadf9737")
-		)
-		(pin "4"
-			(uuid "bb518dc2-25ad-4987-b67d-89abac285d85")
-		)
-		(pin "2"
-			(uuid "b5978549-6319-4845-8743-bb1a42701654")
-		)
-		(instances
-			(project "bokaka"
-				(path "/d8e340c0-2cae-427d-93e9-6fca5a11389e/df3f2b6f-c2ea-42f8-be18-5fedc2357726"
-					(reference "SW2")
-					(unit 1)
-				)
-			)
-		)
-	)
-	(symbol
 		(lib_id "Device:LED")
 		(at 182.88 41.91 0)
 		(unit 1)
@@ -10412,7 +10436,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 182.88 41.91 0)
 			(effects
 				(font
@@ -10494,7 +10518,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 240.03 110.49 0)
 			(effects
 				(font
@@ -10577,7 +10601,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 262.89 132.08 0)
 			(effects
 				(font
@@ -10636,7 +10660,7 @@
 	)
 	(symbol
 		(lib_id "Device:R")
-		(at 99.06 177.8 90)
+		(at 99.06 175.26 90)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -10645,7 +10669,7 @@
 		(fields_autoplaced yes)
 		(uuid "e78bc732-5d5d-4b27-85f9-97c98474b4e4")
 		(property "Reference" "R4"
-			(at 99.06 171.45 90)
+			(at 99.06 168.91 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10653,7 +10677,7 @@
 			)
 		)
 		(property "Value" "1k5"
-			(at 99.06 173.99 90)
+			(at 99.06 171.45 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10661,7 +10685,7 @@
 			)
 		)
 		(property "Footprint" "Resistor_SMD:R_0402_1005Metric"
-			(at 99.06 179.578 90)
+			(at 99.06 177.038 90)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10670,7 +10694,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 99.06 177.8 0)
+			(at 99.06 175.26 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10679,7 +10703,7 @@
 			)
 		)
 		(property "Description" "Resistor"
-			(at 99.06 177.8 0)
+			(at 99.06 175.26 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10734,7 +10758,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 274.32 132.08 0)
 			(effects
 				(font
@@ -10793,7 +10817,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 54.61 151.13 0)
+		(at 58.42 138.43 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -10802,7 +10826,7 @@
 		(fields_autoplaced yes)
 		(uuid "ebe3c0aa-18f2-47f8-94c0-1077ea50bba1")
 		(property "Reference" "#PWR024"
-			(at 54.61 157.48 0)
+			(at 58.42 144.78 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10811,7 +10835,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 54.61 156.21 0)
+			(at 58.42 143.51 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10819,7 +10843,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 54.61 151.13 0)
+			(at 58.42 138.43 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10828,7 +10852,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 54.61 151.13 0)
+			(at 58.42 138.43 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10837,7 +10861,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 54.61 151.13 0)
+			(at 58.42 138.43 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -10889,7 +10913,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 182.88 132.08 0)
 			(effects
 				(font
@@ -10972,7 +10996,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 262.89 157.48 0)
 			(effects
 				(font
@@ -11055,7 +11079,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 228.6 41.91 0)
 			(effects
 				(font
@@ -11138,7 +11162,7 @@
 				)
 			)
 		)
-		(property "Footprint" ""
+		(property "Footprint" "LED_SMD:LED_0603_1608Metric"
 			(at 274.32 110.49 0)
 			(effects
 				(font
@@ -11197,7 +11221,7 @@
 	)
 	(symbol
 		(lib_id "Device:C")
-		(at 35.56 120.65 0)
+		(at 39.37 107.95 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -11206,7 +11230,7 @@
 		(fields_autoplaced yes)
 		(uuid "f73cfc3d-7154-4f7f-ad5b-8ecae7e60b9c")
 		(property "Reference" "C14"
-			(at 39.37 119.3799 0)
+			(at 43.18 106.6799 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11215,7 +11239,7 @@
 			)
 		)
 		(property "Value" "0.1u"
-			(at 39.37 121.9199 0)
+			(at 43.18 109.2199 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11224,7 +11248,7 @@
 			)
 		)
 		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
-			(at 36.5252 124.46 0)
+			(at 40.3352 111.76 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11233,7 +11257,7 @@
 			)
 		)
 		(property "Datasheet" "~"
-			(at 35.56 120.65 0)
+			(at 39.37 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -11242,7 +11266,7 @@
 			)
 		)
 		(property "Description" "Unpolarized capacitor"
-			(at 35.56 120.65 0)
+			(at 39.37 107.95 0)
 			(effects
 				(font
 					(size 1.27 1.27)
