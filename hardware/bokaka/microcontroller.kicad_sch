@@ -2238,6 +2238,28 @@
 			(embedded_fonts no)
 		)
 	)
+	(rectangle
+		(start 16.51 25.4)
+		(end 50.8 78.74)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(fill
+			(type none)
+		)
+		(uuid 18b822ba-9b48-45fa-ac19-da67d7e49d50)
+	)
+	(text "interface"
+		(exclude_from_sim no)
+		(at 20.574 23.876 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "15095a67-a68f-4bb8-ac39-ae1f60cae466")
+	)
 	(junction
 		(at 110.49 58.42)
 		(diameter 0)

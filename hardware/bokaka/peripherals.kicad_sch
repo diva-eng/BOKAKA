@@ -2108,6 +2108,36 @@
 		)
 		(uuid ff85f874-60ed-497e-80cc-03b5d253abca)
 	)
+	(text "Status LED and Buzzer"
+		(exclude_from_sim no)
+		(at 36.322 161.036 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "1730e58f-3682-4032-a151-ea964645605a")
+	)
+	(text "User Buttons"
+		(exclude_from_sim no)
+		(at 31.496 69.596 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "ce1cbc92-315a-43bb-844b-679a5755f377")
+	)
+	(text "interface"
+		(exclude_from_sim no)
+		(at 29.464 26.416 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "f331cb10-262d-457f-90c4-c45ce532c29d")
+	)
 	(junction
 		(at 233.68 121.92)
 		(diameter 0)

@@ -1816,7 +1816,7 @@
 		(end 58.42 49.53)
 		(stroke
 			(width 0)
-			(type default)
+			(type dash)
 		)
 		(fill
 			(type none)
@@ -1858,6 +1858,46 @@
 			(type none)
 		)
 		(uuid fe5beef1-5e06-47d1-8c46-aa07f118d94e)
+	)
+	(text "Power switching"
+		(exclude_from_sim no)
+		(at 41.91 92.456 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "7911c842-b4b3-4e09-a2af-bfaa0dc6ca4b")
+	)
+	(text "interface"
+		(exclude_from_sim no)
+		(at 25.654 34.036 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "a0ec64f5-3981-408e-9cfe-ea90f39aad77")
+	)
+	(text "Test points"
+		(exclude_from_sim no)
+		(at 229.87 134.366 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "bf6ece69-74c7-421b-9526-d01cd9a48b2e")
+	)
+	(text "Buck boost"
+		(exclude_from_sim no)
+		(at 115.57 31.496 0)
+		(effects
+			(font
+				(size 1.27 1.27)
+			)
+		)
+		(uuid "c3d1b55d-f5f4-4618-90b2-7445359702f8")
 	)
 	(junction
 		(at 95.25 107.95)
