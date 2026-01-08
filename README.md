@@ -1,7 +1,7 @@
 # Bokaka (ボカカ)
 
 <div align="center">
-  <img src="assets/logo.png" alt="Bokaka Logo" width="200">
+  <img src="assets/logo.png" alt="Bokaka Logo" width="400">
 </div>
 
 ## Overview
