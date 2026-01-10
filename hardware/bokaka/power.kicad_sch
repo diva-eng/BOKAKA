@@ -1836,7 +1836,7 @@
 		(uuid 82c085b8-847b-4e9e-aa37-dd94af80948e)
 	)
 	(rectangle
-		(start 224.79 135.89)
+		(start 224.79 115.57)
 		(end 270.51 161.29)
 		(stroke
 			(width 0)
@@ -1881,7 +1881,7 @@
 	)
 	(text "Test points"
 		(exclude_from_sim no)
-		(at 229.87 134.366 0)
+		(at 229.87 114.3 0)
 		(effects
 			(font
 				(size 1.27 1.27)
@@ -2131,7 +2131,7 @@
 	)
 	(wire
 		(pts
-			(xy 233.68 151.13) (xy 247.65 151.13)
+			(xy 232.41 151.13) (xy 247.65 151.13)
 		)
 		(stroke
 			(width 0)
@@ -2491,6 +2491,16 @@
 	)
 	(wire
 		(pts
+			(xy 232.41 124.46) (xy 232.41 127)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "6a132209-f06d-4734-839a-5dfef182edb8")
+	)
+	(wire
+		(pts
 			(xy 152.4 53.34) (xy 152.4 48.26)
 		)
 		(stroke
@@ -2548,6 +2558,16 @@
 			(type default)
 		)
 		(uuid "737fe77f-36c5-4fbc-9af8-0f3560930610")
+	)
+	(wire
+		(pts
+			(xy 232.41 134.62) (xy 232.41 135.89)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "7b7938fa-1a09-4eac-a9a6-bc25bb2a433b")
 	)
 	(wire
 		(pts
@@ -2771,7 +2791,17 @@
 	)
 	(wire
 		(pts
-			(xy 233.68 151.13) (xy 233.68 152.4)
+			(xy 232.41 127) (xy 247.65 127)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "b4f740cc-5477-4c40-93e3-c3bc78ab0e97")
+	)
+	(wire
+		(pts
+			(xy 232.41 151.13) (xy 232.41 152.4)
 		)
 		(stroke
 			(width 0)
@@ -2848,6 +2878,16 @@
 			(type default)
 		)
 		(uuid "d8cee572-aaad-4b17-8b0b-97027359d679")
+	)
+	(wire
+		(pts
+			(xy 232.41 135.89) (xy 247.65 135.89)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "e308389a-235a-4fbc-90ad-08eefebc7498")
 	)
 	(wire
 		(pts
@@ -3536,7 +3576,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "0.1u"
+		(property "Value" "100n"
 			(at 115.57 146.0499 0)
 			(effects
 				(font
@@ -3672,7 +3712,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "0.1u"
+		(property "Value" "100n"
 			(at 201.93 125.7299 0)
 			(effects
 				(font
@@ -3808,7 +3848,7 @@
 				(justify left)
 			)
 		)
-		(property "Value" "0.1u"
+		(property "Value" "100n"
 			(at 99.06 114.2999 0)
 			(effects
 				(font
@@ -3957,7 +3997,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 101.2952 148.59 0)
 			(effects
 				(font
@@ -4424,6 +4464,73 @@
 		)
 	)
 	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 247.65 135.89 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "8e932822-a633-497f-a9a4-2e1200282cb5")
+		(property "Reference" "TP4"
+			(at 252.73 134.6199 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 252.73 137.1599 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
+			(at 247.65 140.97 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 247.65 140.97 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 247.65 135.89 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "c0b3e403-cef0-414e-9c35-cf0e139c4ef9")
+		)
+		(instances
+			(project "bokaka"
+				(path "/d8e340c0-2cae-427d-93e9-6fca5a11389e/5a57696f-a948-45ee-a59e-a44500e0832e"
+					(reference "TP4")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
 		(lib_id "power:PWR_FLAG")
 		(at 46.99 118.11 0)
 		(unit 1)
@@ -4484,6 +4591,205 @@
 			(project ""
 				(path "/d8e340c0-2cae-427d-93e9-6fca5a11389e/5a57696f-a948-45ee-a59e-a44500e0832e"
 					(reference "#FLG03")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "Connector:TestPoint")
+		(at 247.65 127 270)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "9832f1b1-bf9b-4558-95a8-8d6c67db6f24")
+		(property "Reference" "TP5"
+			(at 252.73 125.7299 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Value" "TestPoint"
+			(at 252.73 128.2699 90)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(justify left)
+			)
+		)
+		(property "Footprint" "Connector_PinHeader_2.54mm:PinHeader_1x01_P2.54mm_Vertical"
+			(at 247.65 132.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" "~"
+			(at 247.65 132.08 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "test point"
+			(at 247.65 127 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "7c6502d0-d072-4c0a-bfe5-06e7149b319f")
+		)
+		(instances
+			(project "bokaka"
+				(path "/d8e340c0-2cae-427d-93e9-6fca5a11389e/5a57696f-a948-45ee-a59e-a44500e0832e"
+					(reference "TP5")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+3V3")
+		(at 232.41 134.62 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "99b16c4f-9e80-46a5-acdc-a3eda007098a")
+		(property "Reference" "#PWR046"
+			(at 232.41 138.43 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+3V3"
+			(at 232.41 129.54 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 232.41 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 232.41 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+3V3\""
+			(at 232.41 134.62 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "0cfeb6fd-46f6-4bba-b800-245077086438")
+		)
+		(instances
+			(project "bokaka"
+				(path "/d8e340c0-2cae-427d-93e9-6fca5a11389e/5a57696f-a948-45ee-a59e-a44500e0832e"
+					(reference "#PWR046")
+					(unit 1)
+				)
+			)
+		)
+	)
+	(symbol
+		(lib_id "power:+BATT")
+		(at 232.41 124.46 0)
+		(unit 1)
+		(exclude_from_sim no)
+		(in_bom yes)
+		(on_board yes)
+		(dnp no)
+		(fields_autoplaced yes)
+		(uuid "9ab60e49-935c-4a9f-b8d7-a76513074dac")
+		(property "Reference" "#PWR047"
+			(at 232.41 128.27 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Value" "+BATT"
+			(at 232.41 119.38 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+			)
+		)
+		(property "Footprint" ""
+			(at 232.41 124.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Datasheet" ""
+			(at 232.41 124.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Description" "Power symbol creates a global label with name \"+BATT\""
+			(at 232.41 124.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(pin "1"
+			(uuid "2dc86b6e-e2f8-4af4-a9f3-729652440f9f")
+		)
+		(instances
+			(project "bokaka"
+				(path "/d8e340c0-2cae-427d-93e9-6fca5a11389e/5a57696f-a948-45ee-a59e-a44500e0832e"
+					(reference "#PWR047")
 					(unit 1)
 				)
 			)
@@ -4856,7 +5162,7 @@
 	)
 	(symbol
 		(lib_id "power:GND")
-		(at 233.68 152.4 0)
+		(at 232.41 152.4 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -4865,7 +5171,7 @@
 		(fields_autoplaced yes)
 		(uuid "d3767496-c0fb-4e9a-a2fd-07c7ff0235fc")
 		(property "Reference" "#PWR08"
-			(at 233.68 158.75 0)
+			(at 232.41 158.75 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4874,7 +5180,7 @@
 			)
 		)
 		(property "Value" "GND"
-			(at 233.68 157.48 0)
+			(at 232.41 157.48 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4882,7 +5188,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 233.68 152.4 0)
+			(at 232.41 152.4 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4891,7 +5197,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 233.68 152.4 0)
+			(at 232.41 152.4 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4900,7 +5206,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"GND\" , ground"
-			(at 233.68 152.4 0)
+			(at 232.41 152.4 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -4948,7 +5254,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 187.6552 128.27 0)
 			(effects
 				(font
@@ -5158,7 +5464,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+		(property "Footprint" "Capacitor_SMD:C_0603_1608Metric"
 			(at 140.6652 59.69 0)
 			(effects
 				(font
@@ -5228,7 +5534,7 @@
 				(justify left)
 			)
 		)
-		(property "Footprint" "Capacitor_SMD:C_0402_1005Metric"
+		(property "Footprint" "Capacitor_SMD:C_0805_2012Metric"
 			(at 129.2352 59.69 0)
 			(effects
 				(font
