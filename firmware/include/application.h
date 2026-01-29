@@ -16,6 +16,7 @@
 #include "usb_serial.h"
 #include "tap_link.h"
 #include "status_display.h"
+#include "buzzer.h"
 
 class Application {
 public:
@@ -35,6 +36,7 @@ public:
     Storage& getStorage() { return _storage; }
     StatusDisplay& getStatusDisplay() { return _statusDisplay; }
     TapLink* getTapLink() { return _tapLink; }
+    Buzzer& getBuzzer() { return _buzzer; }
 
 private:
     // =====================================================
@@ -61,6 +63,7 @@ private:
     UsbCommandHandler _usb;
     TapLink* _tapLink;
     StatusDisplay _statusDisplay;
+    Buzzer _buzzer;
 
     // =====================================================
     // State

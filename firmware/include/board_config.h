@@ -51,3 +51,17 @@
 #define TAP_LINK_PIN 9        // Generic: GPIO 9
 #endif
 #endif
+
+// =====================================================
+// Buzzer Pin (HS-F02A or similar passive piezo)
+// =====================================================
+// PWM-capable pin for tone generation
+// NUCLEO-L053R8: D9 = PC7 (TIM3_CH2 or TIM22_CH2)
+
+#ifndef BUZZER_PIN
+#ifdef PC7
+#define BUZZER_PIN PC7        // Arduino: PC7 (D9) - PWM capable
+#else
+#define BUZZER_PIN 9          // Generic: GPIO 9
+#endif
+#endif

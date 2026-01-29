@@ -6,6 +6,9 @@
 // LED pin configuration
 static const uint32_t STATUS_LED_PINS[] = { STATUS_LED0_PIN, STATUS_LED1_PIN };
 
+// Buzzer timing constants
+static constexpr uint32_t SUCCESS_TONE_DELAY_MS = 150;  // Delay before success tone
+
 Application::Application()
     : _tapLink(nullptr)
     , _connectionDetectedTime(0)
@@ -28,6 +31,9 @@ void Application::init() {
     _statusDisplay.begin(STATUS_LED_PINS, 2);
     _statusDisplay.setReadyPattern(StatusDisplay::ReadyPattern::Booting);
     _statusDisplay.setRolePattern(StatusDisplay::RolePattern::Unknown);
+
+    // Initialize buzzer (HS-F02A on configurable pin)
+    _buzzer.begin(BUZZER_PIN);
 
     // Initialize storage
     _storage.begin();
@@ -57,7 +63,8 @@ void Application::loop() {
 #ifdef EVAL_BOARD_TEST
         // Check if connection was just detected
         if (_tapLink->isConnectionDetected()) {
-            // Connection detected, negotiation starting, adding some animations if needed
+            // Play detection beep when devices touch
+            _buzzer.playDetectionTone();
         }
 
         // Check if negotiation just completed
@@ -82,6 +89,9 @@ void Application::loop() {
 
     // Update LED patterns
     _statusDisplay.loop();
+
+    // Update buzzer (handles melodies and scheduled tones)
+    _buzzer.loop();
 
     // Fast polling needed to detect 2ms presence pulses
     platform_delay_ms(1);
@@ -204,6 +214,8 @@ void Application::handleMasterCommands(uint32_t nowMs) {
                 if (_storage.addLink(peerId)) {
                     _storage.saveLinkOnly();
                 }
+                // Schedule success tone with delay (ID exchange happens fast)
+                _buzzer.scheduleSuccessTone(SUCCESS_TONE_DELAY_MS);
             }
         }
     } else {
@@ -235,6 +247,8 @@ void Application::handleSlaveCommands() {
                 if (_storage.addLink(peerId)) {
                     _storage.saveLinkOnly();
                 }
+                // Schedule success tone with delay (ID exchange happens fast)
+                _buzzer.scheduleSuccessTone(SUCCESS_TONE_DELAY_MS);
             }
             break;
         }
@@ -259,6 +273,10 @@ void Application::handleBatteryMode(uint32_t nowMs) {
     // Check for connection events
     if (_tapLink->isConnectionEstablished()) {
         _connectionDetectedTime = nowMs;
+        // Play detection beep when connection established
+        _buzzer.playDetectionTone();
+        // Schedule success tone (ID exchange is quick in battery mode)
+        _buzzer.scheduleSuccessTone(SUCCESS_TONE_DELAY_MS);
     }
 
     if (_tapLink->isConnectionLost()) {

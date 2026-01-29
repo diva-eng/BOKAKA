@@ -4430,6 +4430,42 @@
 				(hide yes)
 			)
 		)
+		(property "Sim.Library" "Spice Models\\TPS2116_PSPICE_TRANS\\TPS2116_TRANS.LIB"
+			(at 139.7 124.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Sim.Name" "TPS2116_TRANS"
+			(at 139.7 124.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Sim.Device" "SUBCKT"
+			(at 139.7 124.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
+		(property "Sim.Pins" "1=GND 2=VOUT_0 3=VIN1 4=PR1 5=MODE 6=VIN2 7=VOUT_1 8=ST"
+			(at 139.7 124.46 0)
+			(effects
+				(font
+					(size 1.27 1.27)
+				)
+				(hide yes)
+			)
+		)
 		(pin "7"
 			(uuid "8f85f7dc-9bd7-4b73-9640-d0dd4961f5ab")
 		)

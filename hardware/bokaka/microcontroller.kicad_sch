@@ -2475,6 +2475,12 @@
 		(uuid "a9eaedbd-ef23-458d-8c88-3cdd4b6a769f")
 	)
 	(junction
+		(at 132.08 46.99)
+		(diameter 0)
+		(color 0 0 0 0)
+		(uuid "aa9bb021-10b0-4d56-9419-c5913916bbef")
+	)
+	(junction
 		(at 177.8 128.27)
 		(diameter 0)
 		(color 0 0 0 0)
@@ -2527,12 +2533,6 @@
 		(diameter 0)
 		(color 0 0 0 0)
 		(uuid "f345a280-3ced-46cd-9b12-6722af2364f7")
-	)
-	(junction
-		(at 121.92 58.42)
-		(diameter 0)
-		(color 0 0 0 0)
-		(uuid "f8ad6008-463a-4641-ad5e-faa78be67cd8")
 	)
 	(no_connect
 		(at 154.94 88.9)
@@ -2802,6 +2802,16 @@
 	)
 	(wire
 		(pts
+			(xy 132.08 46.99) (xy 132.08 58.42)
+		)
+		(stroke
+			(width 0)
+			(type default)
+		)
+		(uuid "1c8c91ff-548c-4be3-af3d-60665f1ea96e")
+	)
+	(wire
+		(pts
 			(xy 154.94 101.6) (xy 171.45 101.6)
 		)
 		(stroke
@@ -3032,16 +3042,6 @@
 	)
 	(wire
 		(pts
-			(xy 121.92 58.42) (xy 132.08 58.42)
-		)
-		(stroke
-			(width 0)
-			(type default)
-		)
-		(uuid "57836e07-4ca2-402f-8d41-71d49f644bc8")
-	)
-	(wire
-		(pts
 			(xy 76.2 57.15) (xy 76.2 58.42)
 		)
 		(stroke
@@ -3052,7 +3052,7 @@
 	)
 	(wire
 		(pts
-			(xy 121.92 46.99) (xy 129.54 46.99)
+			(xy 121.92 46.99) (xy 132.08 46.99)
 		)
 		(stroke
 			(width 0)
@@ -3382,7 +3382,7 @@
 	)
 	(wire
 		(pts
-			(xy 129.54 45.72) (xy 129.54 46.99)
+			(xy 132.08 45.72) (xy 132.08 46.99)
 		)
 		(stroke
 			(width 0)
@@ -5021,7 +5021,7 @@
 	)
 	(symbol
 		(lib_id "power:+3V3")
-		(at 129.54 45.72 0)
+		(at 132.08 45.72 0)
 		(unit 1)
 		(exclude_from_sim no)
 		(in_bom yes)
@@ -5030,7 +5030,7 @@
 		(fields_autoplaced yes)
 		(uuid "815a5bad-4511-4077-b1fd-704344bed2cb")
 		(property "Reference" "#PWR03"
-			(at 129.54 49.53 0)
+			(at 132.08 49.53 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5039,7 +5039,7 @@
 			)
 		)
 		(property "Value" "+3V3"
-			(at 129.54 40.64 0)
+			(at 132.08 40.64 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5047,7 +5047,7 @@
 			)
 		)
 		(property "Footprint" ""
-			(at 129.54 45.72 0)
+			(at 132.08 45.72 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5056,7 +5056,7 @@
 			)
 		)
 		(property "Datasheet" ""
-			(at 129.54 45.72 0)
+			(at 132.08 45.72 0)
 			(effects
 				(font
 					(size 1.27 1.27)
@@ -5065,7 +5065,7 @@
 			)
 		)
 		(property "Description" "Power symbol creates a global label with name \"+3V3\""
-			(at 129.54 45.72 0)
+			(at 132.08 45.72 0)
 			(effects
 				(font
 					(size 1.27 1.27)

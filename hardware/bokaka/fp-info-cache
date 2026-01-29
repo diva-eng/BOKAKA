@@ -1,4 +1,4 @@
-26770864936480939
+26772632649014869
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -61375,6 +61375,20 @@ One digit LED 7 segment SA39-11 SC39-11 SA39-12 SC39-12
 0
 10
 10
+EasyEDA_Lib
+SW-SMD_4P-L5.1-W5.1-P3.70-LS6.5-TL_H1.5
+
+
+0
+4
+4
+EasyEDA_Lib
+USB-C-SMD_TYPE-C-USB-17
+
+
+0
+16
+13
 Ferrite_THT
 LairdTech_28C0236-0JW-10
 Ferrite, vertical, LairdTech 28C0236-0JW-10, https://assets.lairdtech.com/home/brandworld/files/28C0236-0JW-10.pdf, JW Miller core https://www.bourns.com/products/magnetic-products/j.w.-miller-through-hole-ferrite-beads-emi-filters
@@ -61627,6 +61641,13 @@ SOT65P210X110-5N
 0
 5
 5
+Footprints
+SW_TS-1187A-B-A-B
+
+
+0
+4
+4
 Fuse
 FuseHolder_Blade_ATO_Littelfuse_FLR_178.6165
 Littelfuse fuse holder for ATO/FKS blade fuses, 80V, vertical, 20 x 6mm, PCB thickness up to 1.5mm, http://www.littelfuse.com/~/media/commercial-vehicle/datasheets/automotive-fuse-holders/ato/littelfuse-fuse-holder-ato-flr-pcb-datasheet.pdf
